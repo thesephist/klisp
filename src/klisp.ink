@@ -176,7 +176,22 @@ eval := (L, env) => L :: {
 		))
 	)
 	[',macro', _] -> (
-		` TODO: macros `
+		params := (L.1).0
+		body := ((L.1).1).0
+		makeMacro(args => (
+			envc := (sub := (envc, params, args) => [params, args] :: {
+				[(), _] -> envc
+				[_, ()] -> envc
+				_ -> (
+					arg := args.0
+					param := params.0
+					envc.(param) := arg
+					sub(envc, params.1, args.1)
+				)
+				` NOTE: all arguments to a macro are passed as the first parameter `
+			})({'_env': env}, params, [args, ()])
+			eval(body, envc)
+		))
 	)
 	_ -> type(L) :: {
 		'composite' -> (
@@ -189,7 +204,7 @@ eval := (L, env) => L :: {
 
 			macro? :: {
 				true -> (
-					tranformed := func(argcs)
+					transformed := func(argcs)
 					eval(transformed, env)
 				)
 				false -> (
@@ -250,6 +265,7 @@ Tests := [
 	'(x . (y . ()))'
 	'(+ 1 23 45.6)'
 	'((x) (y)( z))'
+	'(+ . numbers)'
 	'(a ( b  c
 		d )e f	g  )'
 ]
@@ -259,6 +275,7 @@ log('::: EVAL TESTS :::')
 EvalTests := [
 	'(& (= 3 3) (= 1 2))'
 	'(+ 1 2 3 4 5)'
+	'(+ . (1 2 3 4 5 6))'
 	'(- 100 (/ (* 10 10) 5) 40)'
 	'(+ 4 (* 2 5))'
 	'(+ \'Hello\' \' World\\\'s!\')'
@@ -304,6 +321,29 @@ EvalTests := [
 		'(def square (fn (x) (* x x)))'
 		'(def nums (quote (1 2 3 4 5)))'
 		'(map nums square)'
+	]
+	[
+		'(def list
+			  (macro (items)
+					 (cons (quote quote)
+						   (cons items ()))))'
+		'(list 1 2 3 4 (+ 2 3))'
+	]
+	[
+		'(def sum
+			  (fn (xs)
+				  (if (= xs ())
+					  0
+					  (+ (car xs) (sum (cdr xs))))))'
+		'(def size
+			  (fn (xs)
+				  (if (= xs ())
+					  0
+					  (+ 1 (size (cdr xs))))))'
+		'(def avg
+			  (fn (xs)
+				  (/ (sum xs) (size xs))))'
+		'(avg (quote (100 200 300 500)))'
 	]
 ]
 each(EvalTests, t => type(t) :: {
