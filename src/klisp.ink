@@ -140,8 +140,6 @@ getenv := (env, name) => v := env.(name) :: {
 }
 
 eval := (L, env) => L :: {
-	',true' -> true
-	',false' -> false
 	[',=', _] -> reduceL((L.1).1, (a, b) => a = eval(b, env), eval((L.1).0, env))
 	[',+', _] -> reduceL((L.1).1, (a, b) => a + eval(b, env), eval((L.1).0, env))
 	[',-', _] -> reduceL((L.1).1, (a, b) => a - eval(b, env), eval((L.1).0, env))
@@ -151,13 +149,6 @@ eval := (L, env) => L :: {
 	[',&', _] -> reduceL((L.1).1, (a, b) => a & eval(b, env), eval((L.1).0, env))
 	[',|', _] -> reduceL((L.1).1, (a, b) => a | eval(b, env), eval((L.1).0, env))
 	[',^', _] -> reduceL((L.1).1, (a, b) => a ^ eval(b, env), eval((L.1).0, env))
-	[',car', _] -> eval((L.1).0, env)
-	[',cdr', _] -> eval((L.1).1, env)
-	[',cons', _] -> (
-		car := (L.1).0
-		cdr := ((L.1).1).0
-		[eval(car, env), eval(cdr, env)]
-	)
 	[',if', _] -> (
 		cond := (L.1).0
 		conseq := ((L.1).1).0
@@ -167,14 +158,16 @@ eval := (L, env) => L :: {
 			_ -> eval(altern, env)
 		}
 	)
+	` TODO: macros `
 	[',fn', _] -> (
 		params := (L.1).0
 		body := ((L.1).1).0
 		args => (
-			envc := (sub := (envc, params, args) => params :: {
-				() -> envc
+			envc := (sub := (envc, params, args) => [params, args] :: {
+				[(), _] -> envc
+				[_, ()] -> envc
 				_ -> (
-					arg := eval(args.0, env)
+					arg := args.0
 					param := params.0
 					envc.(param) := arg
 					sub(envc, params.1, args.1)
@@ -193,8 +186,14 @@ eval := (L, env) => L :: {
 	_ -> type(L) :: {
 		'composite' -> (
 			func := L.0
-			args := L.1
-			eval(func, env)(args)
+			argcs := L.1
+			args := []
+			reduceL(argcs, (head, x) => (
+				cons := [eval(x, env)]
+				head.1 := cons
+				cons
+			), args)
+			eval(func, env)(args.1)
 		)
 		'string' -> L.0 :: {
 			',' -> x := getenv(env, L) :: {
@@ -205,6 +204,14 @@ eval := (L, env) => L :: {
 		}
 		_ -> L
 	}
+}
+
+Env := {
+	',true': true
+	',false': false
+	',car': L => L.0
+	',cdr': L => L.1
+	',cons': L => [L.0, L.1]
 }
 
 print := L => type(L) :: {
@@ -258,11 +265,13 @@ EvalTests := [
 	]
 ]
 each(EvalTests, t => type(t) :: {
-	'string' -> log(eval(read(t), {}))
+	'string' -> logf('{{0}}' + Newline + '    -> {{1}}'
+		[t, eval(read(t), Env)])
 	'composite' -> reduce(t, (env, term) => (
-		log(eval(read(term), env))
+		logf('{{0}}' + Newline + '    -> {{1}}'
+			[term, eval(read(term), Env)])
 		env
-	), {})
+	), Env)
 	_ -> logf('Invalid test: {{0}}', [t])
 })
 
