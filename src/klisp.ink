@@ -138,6 +138,9 @@ getenv := (env, name) => v := env.(name) :: {
 	_ -> v
 }
 
+makeFn := f => () => [false, f]
+makeMacro := f => () => [true, f]
+
 eval := (L, env) => L :: {
 	[',quote', _] -> (L.1).0
 	[',def', _] -> (
@@ -155,11 +158,10 @@ eval := (L, env) => L :: {
 			_ -> eval(altern, env)
 		}
 	)
-	` TODO: macros `
 	[',fn', _] -> (
 		params := (L.1).0
 		body := ((L.1).1).0
-		args => (
+		makeFn(args => (
 			envc := (sub := (envc, params, args) => [params, args] :: {
 				[(), _] -> envc
 				[_, ()] -> envc
@@ -171,19 +173,35 @@ eval := (L, env) => L :: {
 				)
 			})({'_env': env}, params, args)
 			eval(body, envc)
-		)
+		))
+	)
+	[',macro', _] -> (
+		` TODO: macros `
 	)
 	_ -> type(L) :: {
 		'composite' -> (
 			func := L.0
 			argcs := L.1
-			args := []
-			reduceL(argcs, (head, x) => (
-				cons := [eval(x, env)]
-				head.1 := cons
-				cons
-			), args)
-			eval(func, env)(args.1)
+
+			funcStub := eval(func, env)()
+			macro? := funcStub.0
+			func := eval(funcStub.1, env)
+
+			macro? :: {
+				true -> (
+					tranformed := func(argcs)
+					eval(transformed, env)
+				)
+				false -> (
+					args := []
+					reduceL(argcs, (head, x) => (
+						cons := [eval(x, env)]
+						head.1 := cons
+						cons
+					), args)
+					func(args.1)
+				)
+			}
 		)
 		'string' -> L.0 :: {
 			',' -> getenv(env, L)
@@ -196,20 +214,20 @@ eval := (L, env) => L :: {
 Env := {
 	',true': true
 	',false': false
-	',car': L => (L.0).0
-	',cdr': L => (L.0).1
-	',cons': L => [L.0, (L.1).0]
-	',=': L => reduceL(L.1, (a, b) => a = b, L.0)
-	',<': L => L.0 < (L.1).0
-	',>': L => L.0 > (L.1).0
-	',+': L => reduceL(L.1, (a, b) => a + b, L.0)
-	',-': L => reduceL(L.1, (a, b) => a - b, L.0)
-	',*': L => reduceL(L.1, (a, b) => a * b, L.0)
-	',/': L => reduceL(L.1, (a, b) => a / b, L.0)
-	',%': L => reduceL(L.1, (a, b) => a % b, L.0)
-	',&': L => reduceL(L.1, (a, b) => a & b, L.0)
-	',|': L => reduceL(L.1, (a, b) => a | b, L.0)
-	',^': L => reduceL(L.1, (a, b) => a ^ b, L.0)
+	',car': makeFn(L => (L.0).0)
+	',cdr': makeFn(L => (L.0).1)
+	',cons': makeFn(L => [L.0, (L.1).0])
+	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
+	',<': makeFn(L => L.0 < (L.1).0)
+	',>': makeFn(L => L.0 > (L.1).0)
+	',+': makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
+	',-': makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
+	',*': makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
+	',/': makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
+	',%': makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
+	',&': makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))
+	',|': makeFn(L => reduceL(L.1, (a, b) => a | b, L.0))
+	',^': makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
 }
 
 print := L => type(L) :: {
