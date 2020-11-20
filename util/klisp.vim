@@ -24,6 +24,7 @@ highlight link klispNumber Number
 
 " special forms
 syntax keyword klispKeyword quote contained
+syntax keyword klispKeyword do contained
 syntax keyword klispKeyword def contained
 syntax keyword klispKeyword if contained
 syntax keyword klispKeyword fn contained

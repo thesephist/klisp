@@ -12,6 +12,7 @@ reduce := std.reduce
 scan := std.scan
 rf := std.readFile
 
+trim := str.trim
 digit? := str.digit?
 letter? := str.letter?
 
@@ -60,7 +61,7 @@ reader := s => (
 
 ` read takes a string and returns a List `
 read := s => (
-	r := reader(s)
+	r := reader(trim(trim(s, ' '), Newline))
 
 	peek := r.peek
 	next := r.next
@@ -125,7 +126,17 @@ read := s => (
 		}
 	}
 
-	parse()
+	form := parse()
+	term := [form, ()]
+	prog := [',do', term]
+	(sub := tail => peek() :: {
+		() -> prog
+		_ -> (
+			term := [parse(), ()]
+			tail.1 := term
+			sub(term)
+		)
+	})(term)
 )
 
 getenv := (env, name) => v := env.(name) :: {
@@ -141,6 +152,13 @@ makeMacro := f => () => [true, f]
 
 eval := (L, env) => L :: {
 	[',quote', _] -> (L.1).0
+	[',do', _] -> (sub := form => form.1 :: {
+		() -> eval(form.0, env)
+		_ -> (
+			eval(form.0, env)
+			sub(form.1)
+		)
+	})(L.1)
 	[',def', _] -> (
 		name := (L.1).0
 		val := ((L.1).1).0

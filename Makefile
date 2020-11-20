@@ -27,6 +27,6 @@ configure:
 
 install:
 	sudo echo '#!/bin/sh' > /usr/local/bin/klisp
-	sudo echo rlwrap `pwd`/src/cli.ink >> /usr/local/bin/klisp
+	sudo echo rlwrap `pwd`/src/cli.ink '$$*' >> /usr/local/bin/klisp
 	sudo chmod +x /usr/local/bin/klisp
 

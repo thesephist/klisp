@@ -1,1 +1,3 @@
-(print (quote (1 2 3)))
+(do
+  (print (quote (1 2 3)))
+  (print (+ 'Hello, ' 'World!')))
