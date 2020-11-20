@@ -12,11 +12,11 @@ reduce := std.reduce
 scan := std.scan
 rf := std.readFile
 
-ws? := str.ws?
 digit? := str.digit?
 letter? := str.letter?
 
 Newline := char(10)
+Tab := char(9)
 logf := (s, x) => log(f(s, x))
 
 L := (car, cdr) => [car, cdr]
@@ -37,6 +37,7 @@ reader := s => (
 		(sub := acc => peek() :: {
 			' ' -> acc
 			Newline -> acc
+			Tab -> acc
 			')' -> acc
 			_ -> sub(acc + next())
 		})('')
@@ -49,8 +50,9 @@ reader := s => (
 	data.ff := () => (
 		(sub := () => (
 			peek() :: {
-				' ' -> next()
-				Newline -> next()
+				' ' -> (next(), sub())
+				Newline -> (next(), sub())
+				Tab -> (next(), sub())
 				_ -> ()
 			}
 		))()
@@ -129,38 +131,72 @@ read := s => (
 	parse()
 )
 
-eval := L => L :: {
+eval := (L, env) => L :: {
 	',true' -> true
 	',false' -> false
-	[',+', _] -> reduceL(L.1, (a, b) => a + eval(b), type((L.1).0) :: {
+	[',=', _] -> reduceL((L.1).1, (a, b) => a = eval(b, env), eval((L.1).0, env))
+	[',+', _] -> reduceL(L.1, (a, b) => a + eval(b, env), type((L.1).0) :: {
 		'number' -> 0
 		'string' -> ''
 	})
-	[',-', _] -> reduceL((L.1).1, (a, b) => a - eval(b), eval((L.1).0))
-	[',*', _] -> reduceL(L.1, (a, b) => a * eval(b), 1)
-	[',/', _] -> reduceL((L.1).1, (a, b) => a / eval(b), eval((L.1).0))
-	[',%', _] -> reduceL((L.1).1, (a, b) => a % eval(b), eval((L.1).0))
-	[',car', _] -> eval((L.1).0)
-	[',cdr', _] -> eval((L.1).1)
+	[',-', _] -> reduceL((L.1).1, (a, b) => a - eval(b, env), eval((L.1).0, env))
+	[',*', _] -> reduceL(L.1, (a, b) => a * eval(b, env), 1)
+	[',/', _] -> reduceL((L.1).1, (a, b) => a / eval(b, env), eval((L.1).0, env))
+	[',%', _] -> reduceL((L.1).1, (a, b) => a % eval(b, env), eval((L.1).0, env))
+	[',&', _] -> reduceL((L.1).1, (a, b) => a & eval(b, env), eval((L.1).0, env))
+	[',|', _] -> reduceL((L.1).1, (a, b) => a | eval(b, env), eval((L.1).0, env))
+	[',^', _] -> reduceL((L.1).1, (a, b) => a ^ eval(b, env), eval((L.1).0, env))
+	[',car', _] -> eval((L.1).0, env)
+	[',cdr', _] -> eval((L.1).1, env)
 	[',cons', _] -> (
 		car := (L.1).0
 		cdr := ((L.1).1).0
-		[eval(car), eval(cdr)]
+		[eval(car, env), eval(cdr, env)]
 	)
 	[',if', _] -> (
 		cond := (L.1).0
 		conseq := ((L.1).1).0
 		altern := (((L.1).1).1).0
-		eval(cond) :: {
-			true -> eval(conseq)
-			_ -> eval(altern)
+		eval(cond, env) :: {
+			true -> eval(conseq, env)
+			_ -> eval(altern, env)
 		}
 	)
-	[',quote', _] -> ()
+	[',fn', _] -> (
+		params := (L.1).0
+		body := ((L.1).1).0
+		args => (
+			envc := (sub := (envc, params, args) => params :: {
+				() -> envc
+				_ -> (
+					arg := eval(args.0, env)
+					param := params.0
+					envc.(param) := arg
+					sub(envc, params.1, args.1)
+				)
+			})({}, params, args)
+			eval(body, envc)
+		)
+	)
+	[',def', _] -> (
+		name := (L.1).0
+		val := ((L.1).1).0
+		env.(name) := eval(val, env)
+	)
+	[',quote', _] -> L.1
 	_ -> type(L) :: {
 		'composite' -> (
-			` TODO: apply function `
+			func := L.0
+			args := L.1
+			eval(func, env)(args)
 		)
+		'string' -> L.0 :: {
+			',' -> x := env.(L) :: {
+				() -> logf('Unbound name: {{0}}', [L])
+				_ -> x
+			}
+			_ -> L
+		}
 		_ -> L
 	}
 }
@@ -178,24 +214,35 @@ log('::: READ TESTS :::')
 Tests := [
 	`` '10'
 	`` 'word'
+	'(+ 1
+		2)'
 	'()'
 	'(x)'
 	'(x . y)'
 	'(a b)'
 	'(x . (y . ()))'
 	'(+ 1 23 45.6)'
-	'((x) (y) (z))'
-	'(a ( b  c d )e f g  )'
+	'((x) (y)( z))'
+	'(a ( b  c
+		d )e f	g  )'
 ]
 each(Tests, t => log(print(read(t))))
 
 log('::: EVAL TESTS :::')
 EvalTests := [
+	'(& (= 3 3) (= 1 2))'
 	'(+ 1 2 3 4 5)'
 	'(- 100 (/ (* 10 10) 5) 40)'
 	'(+ 4 (* 2 5))'
 	'(+ \'Hello\' \' World\\\'s!\')'
-	'(if true 2 3)'
+	'(if false 2 . (3))'
+	'(if (& (= 3 3)
+			(= 1 2))
+		 (+ 1 2 3)
+		 (* 4 5 6))'
+	'((fn () \'result\') 100)'
+	'((fn (x) (+ 1 x)) 2)'
+	'((fn (x y) (* x y)) 2 10)'
 ]
-each(EvalTests, t => log(eval(read(t))))
+each(EvalTests, t => log(eval(read(t), {})))
 
