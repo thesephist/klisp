@@ -1,4 +1,4 @@
-` Link: a LISP written in Ink `
+` Klisp: a LISP written in Ink `
 
 std := load('../vendor/std')
 str := load('../vendor/str')

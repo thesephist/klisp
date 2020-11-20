@@ -1,3 +1,5 @@
+#!/usr/bin/env ink
+
 ` Klisp CLI `
 
 std := load('../vendor/std')
@@ -17,21 +19,29 @@ Env := klisp.Env
 
 Version := '0.1'
 
-paths := slice(args(), 2, len(args()))
+main := () => (
+	paths := slice(args(), 2, len(args()))
+	path := paths.0 :: {
+		() -> (sub := env => (
+			out('> ')
+			scan(line => (
+				log(print(eval(read(line), env)))
+				sub(env)
+			))
+		))(Env)
+		_ -> (
+			readFile(path, file => file :: {
+				() -> log(f('error: could not read {{0}}', [path]))
+				_ -> eval(read(file), Env)
+			})
+		)
+	}
+)
 
-path := paths.0 :: {
-	() -> (sub := env => (
-		out('> ')
-		scan(line => (
-			log(print(eval(read(line), env)))
-			sub(env)
-		))
-	))(Env)
-	_ -> (
-		readFile(path, file => file :: {
-			() -> log(f('error: could not read {{0}}', [path]))
-			_ -> eval(read(file), Env)
-		})
-	)
-}
+` initialize environment and start `
+readFile('./lib/klisp.klisp', file => file :: {
+	() -> log('error: could not locate standard library')
+	_ -> eval(read(file), Env)
+})
+main()
 

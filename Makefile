@@ -21,3 +21,12 @@ f: fmt
 fmt-check:
 	inkfmt src/*.ink
 fk: fmt-check
+
+configure:
+	cp util/klisp.vim ~/.vim/syntax/klisp.vim
+
+install:
+	sudo echo '#!/bin/sh' > /usr/local/bin/klisp
+	sudo echo rlwrap `pwd`/src/cli.ink >> /usr/local/bin/klisp
+	sudo chmod +x /usr/local/bin/klisp
+

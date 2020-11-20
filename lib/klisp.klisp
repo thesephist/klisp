@@ -1,0 +1,24 @@
+(def list
+     (macro (items)
+            (cons (quote quote)
+                  (cons items ()))))
+
+(def map
+     (fn (list f)
+         (if (= list ())
+           ()
+           (cons (f (car list))
+                 (map (cdr list) f)))))
+
+(def reduce
+     (fn (list f acc)
+         (if (= list ())
+           acc
+           (reduce (cdr list) f (f acc (car list))))))
+
+(def size
+     (fn (xs)
+         (if (= xs ())
+           0
+           (+ 1 (size (cdr xs))))))
+
