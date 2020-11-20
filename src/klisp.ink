@@ -273,6 +273,7 @@ Env := {
 print := L => type(L) :: {
 	'composite' -> L :: {
 		[_, ()] -> f('({{0}})', [print(L.0)])
+		[_, [_, _]] -> f('({{0}} {{1}})', [print(L.0), print((L.1).0)])
 		[_, _] -> f('({{0}} . {{1}})', [print(L.0), print(L.1)])
 		_ -> stringList(L)
 	}
