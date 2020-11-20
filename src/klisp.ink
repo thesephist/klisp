@@ -131,14 +131,19 @@ read := s => (
 	parse()
 )
 
+getenv := (env, name) => v := env.(name) :: {
+	() -> e := env.('_env') :: {
+		() -> ()
+		_ -> getenv(e, name)
+	}
+	_ -> v
+}
+
 eval := (L, env) => L :: {
 	',true' -> true
 	',false' -> false
 	[',=', _] -> reduceL((L.1).1, (a, b) => a = eval(b, env), eval((L.1).0, env))
-	[',+', _] -> reduceL(L.1, (a, b) => a + eval(b, env), type((L.1).0) :: {
-		'number' -> 0
-		'string' -> ''
-	})
+	[',+', _] -> reduceL((L.1).1, (a, b) => a + eval(b, env), eval((L.1).0, env))
 	[',-', _] -> reduceL((L.1).1, (a, b) => a - eval(b, env), eval((L.1).0, env))
 	[',*', _] -> reduceL(L.1, (a, b) => a * eval(b, env), 1)
 	[',/', _] -> reduceL((L.1).1, (a, b) => a / eval(b, env), eval((L.1).0, env))
@@ -174,7 +179,7 @@ eval := (L, env) => L :: {
 					envc.(param) := arg
 					sub(envc, params.1, args.1)
 				)
-			})({}, params, args)
+			})({'_env': env}, params, args)
 			eval(body, envc)
 		)
 	)
@@ -182,6 +187,7 @@ eval := (L, env) => L :: {
 		name := (L.1).0
 		val := ((L.1).1).0
 		env.(name) := eval(val, env)
+		()
 	)
 	[',quote', _] -> L.1
 	_ -> type(L) :: {
@@ -191,7 +197,7 @@ eval := (L, env) => L :: {
 			eval(func, env)(args)
 		)
 		'string' -> L.0 :: {
-			',' -> x := env.(L) :: {
+			',' -> x := getenv(env, L) :: {
 				() -> logf('Unbound name: {{0}}', [L])
 				_ -> x
 			}
@@ -243,6 +249,20 @@ EvalTests := [
 	'((fn () \'result\') 100)'
 	'((fn (x) (+ 1 x)) 2)'
 	'((fn (x y) (* x y)) 2 10)'
+	[
+		'(def a 647)'
+		'(+ a a)'
+		'(def do
+			  (fn () (- 1000 (+ a a))))'
+		'(do)'
+	]
 ]
-each(EvalTests, t => log(eval(read(t), {})))
+each(EvalTests, t => type(t) :: {
+	'string' -> log(eval(read(t), {}))
+	'composite' -> reduce(t, (env, term) => (
+		log(eval(read(term), env))
+		env
+	), {})
+	_ -> logf('Invalid test: {{0}}', [t])
+})
 
