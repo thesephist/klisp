@@ -19,7 +19,6 @@ Newline := char(10)
 Tab := char(9)
 logf := (s, x) => log(f(s, x))
 
-L := (car, cdr) => [car, cdr]
 reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 	() -> acc
 	_ -> sub(f(acc, node.0), node.1)
@@ -140,7 +139,7 @@ getenv := (env, name) => v := env.(name) :: {
 }
 
 eval := (L, env) => L :: {
-	[',quote', _] -> L.1
+	[',quote', _] -> (L.1).0
 	[',def', _] -> (
 		name := (L.1).0
 		val := ((L.1).1).0
@@ -187,10 +186,7 @@ eval := (L, env) => L :: {
 			eval(func, env)(args.1)
 		)
 		'string' -> L.0 :: {
-			',' -> x := getenv(env, L) :: {
-				() -> logf('Unbound name: {{0}}', [L])
-				_ -> x
-			}
+			',' -> getenv(env, L)
 			_ -> L
 		}
 		_ -> L
@@ -200,10 +196,12 @@ eval := (L, env) => L :: {
 Env := {
 	',true': true
 	',false': false
-	',car': L => L.0
-	',cdr': L => L.1
-	',cons': L => [L.0, L.1]
+	',car': L => (L.0).0
+	',cdr': L => (L.0).1
+	',cons': L => [L.0, (L.1).0]
 	',=': L => reduceL(L.1, (a, b) => a = b, L.0)
+	',<': L => L.0 < (L.1).0
+	',>': L => L.0 > (L.1).0
 	',+': L => reduceL(L.1, (a, b) => a + b, L.0)
 	',-': L => reduceL(L.1, (a, b) => a - b, L.0)
 	',*': L => reduceL(L.1, (a, b) => a * b, L.0)
@@ -227,8 +225,6 @@ log('::: READ TESTS :::')
 Tests := [
 	`` '10'
 	`` 'word'
-	'(+ 1
-		2)'
 	'()'
 	'(x)'
 	'(x . y)'
@@ -255,21 +251,52 @@ EvalTests := [
 		 (* 4 5 6))'
 	'((fn () \'result\') 100)'
 	'((fn (x) (+ 1 x)) 2)'
-	'((fn (x y) (* x y)) 2 10)'
+	'((fn (x y z) (* x y z)) 2 3 10)'
 	[
 		'(def a 647)'
 		'(+ a a)'
-		'(def do
-			  (fn () (- 1000 (+ a a))))'
+		'(def do (fn () (- 1000 (+ a a))))'
 		'(do)'
+	]
+	[
+		'(def add +)'
+		'(def mul *)'
+		'(mul (add 1 2 3) (mul 10 10))'
+	]
+	[
+		'(def fib
+			  (fn (n)
+			      (if (< n 2)
+					  1
+					  (+ (fib (- n 1)) (fib (- n 2))))))'
+		'(fib 10)'
+	]
+	'(quote 123)'
+	'(quote (quote 1 2 3))'
+	'(car (quote (quote 1 2 3)))'
+	'(cdr (quote (quote 1 2 3)))'
+	'(cons 100 (quote (200 300 400)))'
+	[
+		'(def map
+			  (fn (list f)
+			      (if (= list ())
+				      ()
+					  (cons (f (car list))
+						    (map (cdr list) f)))))'
+		'(def square (fn (x) (* x x)))'
+		'(def nums (quote (1 2 3 4 5)))'
+		'(map nums square)'
 	]
 ]
 each(EvalTests, t => type(t) :: {
 	'string' -> logf('{{0}}' + Newline + '    -> {{1}}'
-		[t, eval(read(t), Env)])
-	'composite' -> reduce(t, (env, term) => (
-		logf('{{0}}' + Newline + '    -> {{1}}'
-			[term, eval(read(term), Env)])
+		[t, print(eval(read(t), Env))])
+	'composite' -> reduce(t, (env, term, i) => (
+		i :: {
+			(len(t) - 1) -> logf('{{0}}' + Newline + '    -> {{1}}'
+				[term, print(eval(read(term), env))])
+			_ -> logf('{{0}}', [term, eval(read(term), env)])
+		}
 		env
 	), Env)
 	_ -> logf('Invalid test: {{0}}', [t])
