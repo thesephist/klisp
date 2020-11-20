@@ -24,10 +24,13 @@ main := () => (
 	path := paths.0 :: {
 		() -> (sub := env => (
 			out('> ')
-			scan(line => (
-				log(print(eval(read(line), env)))
-				sub(env)
-			))
+			scan(line => line :: {
+				() -> log('EOF.')
+				_ -> (
+					log(print(eval(read(line), env)))
+					sub(env)
+				)
+			})
 		))(Env)
 		_ -> (
 			readFile(path, file => file :: {

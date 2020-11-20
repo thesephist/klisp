@@ -9,8 +9,6 @@ stringList := std.stringList
 map := std.map
 each := std.each
 reduce := std.reduce
-scan := std.scan
-rf := std.readFile
 
 trim := str.trim
 digit? := str.digit?
@@ -39,6 +37,7 @@ reader := s => (
 			' ' -> acc
 			Newline -> acc
 			Tab -> acc
+			'(' -> acc
 			')' -> acc
 			_ -> sub(acc + next())
 		})('')
@@ -53,6 +52,11 @@ reader := s => (
 				' ' -> (next(), sub())
 				Newline -> (next(), sub())
 				Tab -> (next(), sub())
+				` ignore / ff through comments `
+				';' -> (sub := () => next() :: {
+					Newline -> ()
+					_ -> sub()
+				})()
 				_ -> ()
 			}
 		))()
@@ -67,6 +71,9 @@ read := s => (
 	next := r.next
 	nextSpan := r.nextSpan
 	ff := r.ff
+
+	` ff through prologue comment `
+	ff()
 
 	parse := () => c := peek() :: {
 		() -> ()
@@ -249,6 +256,7 @@ Env := {
 	',cdr': makeFn(L => (L.0).1)
 	',cons': makeFn(L => [L.0, (L.1).0])
 	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
+	',type': makeFn(L => type(L.0))
 	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
 	',<': makeFn(L => L.0 < (L.1).0)
 	',>': makeFn(L => L.0 > (L.1).0)

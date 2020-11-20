@@ -27,7 +27,7 @@ Tests := [
 	'(+ 1 23 45.6)'
 	'((x) (y)( z))'
 	'(+ . numbers)'
-	'(a ( b  c
+	'(a( b  c
 		d )e f	g  )'
 ]
 each(Tests, t => log(print(read(t))))
@@ -51,8 +51,8 @@ EvalTests := [
 	[
 		'(def a 647)'
 		'(+ a a)'
-		'(def do (fn () (- 1000 (+ a a))))'
-		'(do)'
+		'(def doot (fn () (- 1000 (+ a a))))'
+		'(doot)'
 	]
 	[
 		'(def add +)'
