@@ -232,6 +232,7 @@ Env := {
 	',car': makeFn(L => (L.0).0)
 	',cdr': makeFn(L => (L.0).1)
 	',cons': makeFn(L => [L.0, (L.1).0])
+	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
 	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
 	',<': makeFn(L => L.0 < (L.1).0)
 	',>': makeFn(L => L.0 > (L.1).0)
@@ -345,6 +346,7 @@ EvalTests := [
 				  (/ (sum xs) (size xs))))'
 		'(avg (quote (100 200 300 500)))'
 	]
+	'(print 1 2 (+ 1 2) (* 3 4))'
 ]
 each(EvalTests, t => type(t) :: {
 	'string' -> logf('{{0}}' + Newline + '    -> {{1}}'
