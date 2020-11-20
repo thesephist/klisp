@@ -140,15 +140,13 @@ getenv := (env, name) => v := env.(name) :: {
 }
 
 eval := (L, env) => L :: {
-	[',=', _] -> reduceL((L.1).1, (a, b) => a = eval(b, env), eval((L.1).0, env))
-	[',+', _] -> reduceL((L.1).1, (a, b) => a + eval(b, env), eval((L.1).0, env))
-	[',-', _] -> reduceL((L.1).1, (a, b) => a - eval(b, env), eval((L.1).0, env))
-	[',*', _] -> reduceL(L.1, (a, b) => a * eval(b, env), 1)
-	[',/', _] -> reduceL((L.1).1, (a, b) => a / eval(b, env), eval((L.1).0, env))
-	[',%', _] -> reduceL((L.1).1, (a, b) => a % eval(b, env), eval((L.1).0, env))
-	[',&', _] -> reduceL((L.1).1, (a, b) => a & eval(b, env), eval((L.1).0, env))
-	[',|', _] -> reduceL((L.1).1, (a, b) => a | eval(b, env), eval((L.1).0, env))
-	[',^', _] -> reduceL((L.1).1, (a, b) => a ^ eval(b, env), eval((L.1).0, env))
+	[',quote', _] -> L.1
+	[',def', _] -> (
+		name := (L.1).0
+		val := ((L.1).1).0
+		env.(name) := eval(val, env)
+		()
+	)
 	[',if', _] -> (
 		cond := (L.1).0
 		conseq := ((L.1).1).0
@@ -176,13 +174,6 @@ eval := (L, env) => L :: {
 			eval(body, envc)
 		)
 	)
-	[',def', _] -> (
-		name := (L.1).0
-		val := ((L.1).1).0
-		env.(name) := eval(val, env)
-		()
-	)
-	[',quote', _] -> L.1
 	_ -> type(L) :: {
 		'composite' -> (
 			func := L.0
@@ -212,6 +203,15 @@ Env := {
 	',car': L => L.0
 	',cdr': L => L.1
 	',cons': L => [L.0, L.1]
+	',=': L => reduceL(L.1, (a, b) => a = b, L.0)
+	',+': L => reduceL(L.1, (a, b) => a + b, L.0)
+	',-': L => reduceL(L.1, (a, b) => a - b, L.0)
+	',*': L => reduceL(L.1, (a, b) => a * b, L.0)
+	',/': L => reduceL(L.1, (a, b) => a / b, L.0)
+	',%': L => reduceL(L.1, (a, b) => a % b, L.0)
+	',&': L => reduceL(L.1, (a, b) => a & b, L.0)
+	',|': L => reduceL(L.1, (a, b) => a | b, L.0)
+	',^': L => reduceL(L.1, (a, b) => a ^ b, L.0)
 }
 
 print := L => type(L) :: {
