@@ -1,0 +1,22 @@
+; list functions
+
+(def x-list (range 0 30 3))
+(def square
+     (fn (n) (* n n)))
+
+; join, append list
+(print (append x-list 1000))
+(print (join (range 1 6 1) x-list))
+
+; map list
+(print (map x-list square))
+(print (map x-list
+            (fn (n) (/ n 3))))
+
+; reduction
+(print (reduce x-list + 0))
+(print (reduce (cdr x-list) * 1))
+
+; for-each
+(each x-list print)
+

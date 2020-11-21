@@ -92,6 +92,14 @@
            acc
            (reduce (cdr xs) f (f acc (car xs))))))
 
+(def each
+     (fn (xs f)
+         (if (nil? xs)
+           ()
+           (do
+             (f (car xs))
+             (each (cdr xs) f)))))
+
 (def size
      (fn (xs)
          (if (nil? xs)
