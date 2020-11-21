@@ -1,16 +1,21 @@
-; (do
-;   (print (quote (1 2 3)))
-;   (print (+ 'Hello, ' 'World!'))
-;   (print (range 0 200 40))
-;   (print (map (list 10 9 8 7 6)
-; 			  (fn (n)
-; 				  (inc (inc n))))))
+; basic expression
+(do
+  (print (quote (1 2 3)))
+  (print (+ 'Hello,' ' ' 'World!'))
+  (print (range 0 200 40))
+  (print (map (list 10 9 8 7 6)
+              (fn (n)
+                  (inc (inc n))))))
 
-(def map
-     (fn (xs f)
-         (if (= xs ())
-           ()
-           (cons (f (car xs))
-                 (map (cdr xs) f)))))
-(def nums (list 1 2 3 4 5))
-(print (map nums inc))
+; joining and manipulating lists
+(def nums (join (range 0 10 1)
+                (range 10 100 10)))
+(print nums)
+(print (reduce (map nums inc) + 0))
+
+; powers of two
+(def powers-of-two
+     (map (range 1 11 1)
+          (fn (n) (prod (times n 2)))))
+(print powers-of-two)
+

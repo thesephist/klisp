@@ -1,81 +1,100 @@
 ; core library
 
+; aliases
 (def and &)
 (def or |)
 (def xor ^)
 (def not
-	 (fn (x)
-		 (if x false true)))
+     (fn (x)
+         (if x false true)))
 (def ! not)
 
 ; type assertions
+(def nil?
+     (fn (x) (= x ())))
 (def number?
-	 (fn (x) (= (type x) 'number')))
+     (fn (x) (= (type x) 'number')))
 (def boolean?
-	 (fn (x) (= (type x) 'boolean')))
+     (fn (x) (= (type x) 'boolean')))
 (def string?
-	 (fn (x) (= (type x) 'string')))
+     (fn (x) (= (type x) 'string')))
 (def function?
-	 (fn (x) (= (type x) 'function')))
+     (fn (x) (= (type x) 'function')))
 (def list?
-	 (fn (x) (= (type x) 'composite')))
+     (fn (x) (= (type x) 'composite')))
 
 ; identity
 (def id
-	 (fn (x) x))
+     (fn (x) x))
 
 ; basic math
 (def !=
-	 (fn (a b) (! (= a b))))
+     (fn (a b) (! (= a b))))
 (def >=
-	 (fn (a b) (! (< a b))))
+     (fn (a b) (! (< a b))))
 (def <=
-	 (fn (a b) (! (> a b))))
+     (fn (a b) (! (> a b))))
 (def inc
-	 (fn (n) (+ n 1)))
+     (fn (n) (+ n 1)))
 (def dec
-	 (fn (n) (- n 1)))
+     (fn (n) (- n 1)))
+(def sum
+     (fn (ns) (reduce ns + 0)))
+(def prod
+     (fn (ns) (reduce ns * 1)))
+(def times
+     ; repeat x, n times in a list
+     (fn (n x)
+         (map (range 0 n 1)
+              (fn () x))))
 
 ; list methods
 (def list
-	 (macro (items)
-			(cons (quote quote)
-				  (cons items ()))))
+     (macro (items)
+            (cons (quote quote)
+                  (cons items ()))))
 
 (def append
-	 (fn (xs el)
-		 (if (= xs ())
-		   (cons el ())
-		   (cons (car xs)
-				 (append (cdr xs) el)))))
+     (fn (xs el)
+         (if (nil? xs)
+           (cons el ())
+           (cons (car xs)
+                 (append (cdr xs) el)))))
+
+(def join
+     (fn (xs ys)
+         (if (nil? ys)
+           xs
+           (join (append xs (car ys))
+                 (cdr ys)))))
 
 (def range
-	 (fn (start end step)
-		 (do
-		   (def sub
-				(fn (i acc)
-					(if (< i end)
-					  (sub (+ i step)
-						   (append acc i))
-					  acc)))
-		   (sub start (list)))))
+     (fn (start end step)
+         (do
+           (def sub
+                (fn (i acc)
+                    (if (< i end)
+                      (sub (+ i step)
+                           (append acc i))
+                      acc)))
+           (sub start (list)))))
 
 (def map
-	 (fn (list f)
-		 (if (= list ())
-		   ()
-		   (cons (f (car list))
-				 (map (cdr list) f)))))
+     (fn (xs f)
+         (if (nil? xs)
+           ()
+           (cons (f (car xs))
+                 (map (cdr xs) f)))))
 
 (def reduce
-	 (fn (list f acc)
-		 (if (= list ())
-		   acc
-		   (reduce (cdr list) f (f acc (car list))))))
+     (fn (xs f acc)
+         (if (nil? xs)
+           acc
+           (reduce (cdr xs) f (f acc (car xs))))))
 
 (def size
-	 (fn (xs)
-		 (if (= xs ())
-		   0
-		   (+ 1 (size (cdr xs))))))
+     (fn (xs)
+         (if (nil? xs)
+           0
+           (+ 1 (size (cdr xs))))))
 

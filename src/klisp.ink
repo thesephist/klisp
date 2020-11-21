@@ -5,12 +5,8 @@ str := load('../vendor/str')
 
 log := std.log
 f := std.format
-stringList := std.stringList
 slice := std.slice
 cat := std.cat
-map := std.map
-each := std.each
-reduce := std.reduce
 
 digit? := str.digit?
 letter? := str.letter?
