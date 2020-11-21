@@ -22,22 +22,23 @@ Version := '0.1'
 main := () => (
 	paths := slice(args(), 2, len(args()))
 	path := paths.0 :: {
-		() -> (sub := env => (
-			out('> ')
-			scan(line => line :: {
-				() -> log('EOF.')
-				_ -> (
-					log(print(eval(read(line), env)))
-					sub(env)
-				)
-			})
-		))(Env)
-		_ -> (
-			readFile(path, file => file :: {
-				() -> log(f('error: could not read {{0}}', [path]))
-				_ -> eval(read(file), Env)
-			})
+		() -> (
+			log(f('Klisp interpreter v{{0}}.', [Version]))
+			(sub := env => (
+				out('> ')
+				scan(line => line :: {
+					() -> log('EOF.')
+					_ -> (
+						log(print(eval(read(line), env)))
+						sub(env)
+					)
+				})
+			))(Env)
 		)
+		_ -> readFile(path, file => file :: {
+			() -> log(f('error: could not read {{0}}', [path]))
+			_ -> eval(read(file), Env)
+		})
 	}
 )
 

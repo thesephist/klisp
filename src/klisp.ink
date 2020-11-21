@@ -4,24 +4,26 @@ std := load('../vendor/std')
 str := load('../vendor/str')
 
 log := std.log
-f := std.format
 slice := std.slice
 cat := std.cat
+map := std.map
+every := std.every
 
 digit? := str.digit?
-letter? := str.letter?
 replace := str.replace
 trim := str.trim
 
 Newline := char(10)
 Tab := char(9)
-logf := (s, x) => log(f(s, x))
 
+` helper function. Like std.reduce, but traverses a list of sexprs `
 reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 	() -> acc
 	_ -> sub(f(acc, node.0), node.1)
 })(init, L)
 
+` reader object constructor,
+	state containing a cursor through a string `
 reader := s => (
 	data := {s: s, i: 0}
 	peek := () => s.(data.i)
@@ -58,13 +60,13 @@ reader := s => (
 		))()
 	)
 
+	data.peek := peek
 	data.next := next
 	data.nextSpan := nextSpan
-	data.peek := peek
 	data.ff := ff
 )
 
-` read takes a string and returns a List `
+` read takes a string and returns a List representing the input sexpr `
 read := s => (
 	r := reader(trim(trim(s, ' '), Newline))
 
@@ -73,11 +75,11 @@ read := s => (
 	nextSpan := r.nextSpan
 	ff := r.ff
 
-	` ff through prologue comment `
+	` ff through possible comments at start `
 	ff()
 
 	parse := () => c := peek() :: {
-		() -> ()
+		() -> () ` EOF `
 		',' -> (
 			next()
 			ff()
@@ -120,22 +122,17 @@ read := s => (
 				)
 			})((), ())
 		)
-		_ -> digit?(c) :: {
-			true -> (
-				span := nextSpan()
-				ff()
-				number(span)
-			)
-			false -> (
-				span := ',' + nextSpan()
-				ff()
-				span
-			)
-		}
+		_ -> (
+			span := nextSpan()
+			ff()
+			every(map(span, c => digit?(c) | c = '.')) :: {
+				true -> number(span)
+				_ -> ',' + span
+			}
+		)
 	}
 
-	form := parse()
-	term := [form, ()]
+	term := [parse(), ()]
 	prog := [',do', term]
 	(sub := tail => peek() :: {
 		() -> prog
@@ -147,6 +144,8 @@ read := s => (
 	})(term)
 )
 
+` helper to query an environment (scope) for a name.
+	getenv traverses the environment hierarchy `
 getenv := (env, name) => v := env.(name) :: {
 	() -> (
 		` first do a more thorough check to see
@@ -170,9 +169,21 @@ getenv := (env, name) => v := env.(name) :: {
 	_ -> v
 }
 
+` Klisp has two kinds of values represented as Ink functions.
+
+	1. Functions, defined by (fn ...). Klisp functions take finite
+		arguments evaluated eagerly in-scope.
+	2. Macros, defined by (macro ...) Klisp macros take a sexpr List
+		containing the arguments and returns some new piece of syntax.
+		Arguments are not evaluated before call.
+
+	In Klisp, fns and macros are both Ink functions, specifically higher order
+	functions. The first invocation reports whether the function is a macro or
+	a normal function, and the second invocation runs the actual function. `
 makeFn := f => () => [false, f]
 makeMacro := f => () => [true, f]
 
+` the evaluator `
 eval := (L, env) => L :: {
 	[',quote', _] -> (L.1).0
 	[',do', _] -> (sub := form => form.1 :: {
@@ -265,6 +276,7 @@ eval := (L, env) => L :: {
 	}
 }
 
+` the default environment contains core constants and functions `
 Env := {
 	',true': true
 	',false': false
@@ -286,6 +298,8 @@ Env := {
 	',^': makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
 }
 
+` the printer
+	print prints a value as sexprs, preferring lists and falling back to (a . b) `
 print := L => type(L) :: {
 	'composite' -> (
 		list := (sub := (term, acc) => term :: {
