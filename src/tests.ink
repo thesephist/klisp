@@ -60,46 +60,46 @@ SyntaxTests := [
 
 ` used for eval tests `
 EvalTests := [
-	'(& (= 3 3) (= 1 2))'
-	'(+ 1 2 3 4 5)'
-	'(+ . (1 2 3 4 5 6))'
-	'(- 100 (/ (* 10 10) 5) 40)'
-	'(+ 4 (* 2 5))'
-	'(+ \'Hello\' \' World\\\'s!\')'
-	'(if false 2 . (3))'
-	'(if (& (= 3 3)
+	['', '(& (= 3 3) (= 1 2))', false]
+	['', '(+ 1 2 3 4 5)', 15]
+	['', '(+ . (1 2 3 4 5 6))', 21]
+	['', '(- 100 (/ (* 10 10) 5) 40)', 40]
+	['', '(+ 4 (* 2 5))', 14]
+	['', '(+ \'Hello\' \' World\\\'s!\')', 'Hello World\'s!']
+	['', '(if false 2 . (3))', 3]
+	['', '(if (& (= 3 3)
 			(= 1 2))
 		 (+ 1 2 3)
-		 (* 4 5 6))'
-	'((fn () \'result\') 100)'
-	'((fn (x) (+ 1 x)) 2)'
-	'((fn (x y z) (* x y z)) 2 3 10)'
-	[
+		 (* 4 5 6))', 120]
+	['', '((fn () \'result\') 100)', 'result']
+	['', '((fn (x) (+ 1 x)) 2)', 3]
+	['', '((fn (x y z) (* x y z)) 2 3 10)', 60]
+	['', [
 		'(def a 647)'
 		'(+ a a)'
 		'(def doot (fn () (- 1000 (+ a a))))'
 		'(doot)'
-	]
-	[
+	], ~294]
+	['', [
 		'(def add +)'
 		'(def mul *)'
 		'(mul (add 1 2 3) (mul 10 10))'
-	]
-	[
+	], 600]
+	['', [
 		'(def fib
 			  (fn (n)
 			      (if (< n 2)
 					  1
 					  (+ (fib (- n 1)) (fib (- n 2))))))'
 		'(fib 10)'
-	]
-	'(quote 123)'
-	',(10 20 30 40 50)'
-	'(quote (quote 1 2 3))'
-	'(car (quote (quote 1 2 3)))'
-	'(cdr (quote (quote 1 2 3)))'
-	'(cons 100 (quote (200 300 400)))'
-	[
+	], 89]
+	['', '(quote 123)', 123]
+	['', ',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
+	['', '(quote (quote 1 2 3))', [',quote', [1, [2, [3, ()]]]]]
+	['', '(car (quote (quote 1 2 3)))', ',quote']
+	['', '(cdr (quote (quote 1 2 3)))', [1, [2, [3, ()]]]]
+	['', '(cons 100 (quote (200 300 400)))', [100, [200, [300, [400, ()]]]]]
+	['', [
 		'(def map
 			  (fn (xs f)
 			      (if (= xs ())
@@ -109,15 +109,15 @@ EvalTests := [
 		'(def square (fn (x) (* x x)))'
 		'(def nums (quote (1 2 3 4 5)))'
 		'(map nums square)'
-	]
-	[
+	], [1, [4, [9, [16, [25, ()]]]]]]
+	['', [
 		'(def list
 			  (macro (items)
 					 (cons (quote quote)
 						   (cons items ()))))'
 		'(list 1 2 3 4 (+ 2 3))'
-	]
-	[
+	], [1, [2, [3, [4, [[',+', [2, [3, ()]]], ()]]]]]]
+	['', [
 		'(def sum
 			  (fn (xs)
 				  (if (= xs ())
@@ -132,7 +132,7 @@ EvalTests := [
 			  (fn (xs)
 				  (/ (sum xs) (size xs))))'
 		'(avg (quote (100 200 300 500)))'
-	]
+	], 275]
 ]
 
 
@@ -148,19 +148,22 @@ m('read')
 
 m('eval')
 (
-	each(EvalTests, t => type(t) :: {
-		'string' -> logf('{{0}}' + Newline + '    -> {{1}}'
-			[t, print(eval(read(t), Env))])
-		'composite' -> reduce(t, (env, term, i) => (
-			i :: {
-				(len(t) - 1) -> logf('{{0}}' + Newline + '    -> {{1}}'
-					[term, print(eval(read(term), env))])
-				_ -> logf('{{0}}', [term, eval(read(term), env)])
-			}
-			env
-		), Env)
-		_ -> logf('Invalid test: {{0}}', [t])
-	})
+	each(EvalTests, testEval := term => (
+		msg := term.0
+		prog := term.1
+		val := term.2
+		type(prog) :: {
+			'string' -> t(msg, eval(read(prog), Env), val)
+			'composite' -> reduce(prog, (env, term, i) => (
+				i :: {
+					(len(prog) - 1) -> t(msg, eval(read(term), env), val)
+					_ -> eval(read(term), env)
+				}
+				env
+			), Env)
+			_ -> log(f('error: invalid eval test {{0}}', [prog]))
+		}
+	))
 )
 
 m('print')
