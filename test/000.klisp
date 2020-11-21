@@ -1,4 +1,16 @@
-(do
-  (print (quote (1 2 3)))
-  (print (+ 'Hello, ' 'World!'))
-  (print (range 0 200 40)))
+; (do
+;   (print (quote (1 2 3)))
+;   (print (+ 'Hello, ' 'World!'))
+;   (print (range 0 200 40))
+;   (print (map (list 10 9 8 7 6)
+; 			  (fn (n)
+; 				  (inc (inc n))))))
+
+(def map
+     (fn (xs f)
+         (if (= xs ())
+           ()
+           (cons (f (car xs))
+                 (map (cdr xs) f)))))
+(def nums (list 1 2 3 4 5))
+(print (map nums inc))

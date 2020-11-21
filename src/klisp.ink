@@ -6,13 +6,16 @@ str := load('../vendor/str')
 log := std.log
 f := std.format
 stringList := std.stringList
+slice := std.slice
+cat := std.cat
 map := std.map
 each := std.each
 reduce := std.reduce
 
-trim := str.trim
 digit? := str.digit?
 letter? := str.letter?
+replace := str.replace
+trim := str.trim
 
 Newline := char(10)
 Tab := char(9)
@@ -42,11 +45,7 @@ reader := s => (
 			_ -> sub(acc + next())
 		})('')
 	)
-
-	data.next := next
-	data.nextSpan := nextSpan
-	data.peek := peek
-	data.ff := () => (
+	ff := () => (
 		(sub := () => (
 			peek() :: {
 				' ' -> (next(), sub())
@@ -54,13 +53,19 @@ reader := s => (
 				Tab -> (next(), sub())
 				` ignore / ff through comments `
 				';' -> (sub := () => next() :: {
-					Newline -> ()
+					() -> ()
+					Newline -> ff()
 					_ -> sub()
 				})()
 				_ -> ()
 			}
 		))()
 	)
+
+	data.next := next
+	data.nextSpan := nextSpan
+	data.peek := peek
+	data.ff := ff
 )
 
 ` read takes a string and returns a List `
@@ -271,12 +276,28 @@ Env := {
 }
 
 print := L => type(L) :: {
-	'composite' -> L :: {
-		[_, ()] -> f('({{0}})', [print(L.0)])
-		[_, [_, _]] -> f('({{0}} {{1}})', [print(L.0), print((L.1).0)])
-		[_, _] -> f('({{0}} . {{1}})', [print(L.0), print(L.1)])
-		_ -> stringList(L)
+	'composite' -> (
+		list := (sub := (term, acc) => term :: {
+			[_, [_, _]] -> (
+				acc.len(acc) := print(term.0)
+				sub(term.1, acc)
+			)
+			[_, ()] -> acc.len(acc) := print(term.0)
+			[_, _] -> (
+				acc.len(acc) := print(term.0)
+				acc.len(acc) := '.'
+				sub(term.1, acc)
+			)
+			_ -> acc.len(acc) := print(term)
+		})(L, [])
+		'(' + cat(list, ' ') + ')'
+	)
+	_ -> type(L) :: {
+		'string' -> L.0 :: {
+			',' -> slice(L, 1, len(L))
+			_ -> '\'' + replace(replace(L, '\\', '\\\\'), '\'', '\\\'') + '\''
+		}
+		_ -> string(L)
 	}
-	_ -> string(L)
 }
 
