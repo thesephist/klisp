@@ -148,10 +148,25 @@ read := s => (
 )
 
 getenv := (env, name) => v := env.(name) :: {
-	() -> e := env.('_env') :: {
-		() -> ()
-		_ -> getenv(e, name)
-	}
+	() -> (
+		` first do a more thorough check to see
+			if the value is in scope but null () `
+		boundNames := keys(env)
+		bound? := (sub := i => i :: {
+			len(boundNames) -> false
+			_ -> boundNames.(i) :: {
+				name -> true
+				_ -> sub(i + 1)
+			}
+		})(0)
+		bound? :: {
+			true -> ()
+			false -> e := env.('_env') :: {
+				() -> ()
+				_ -> getenv(e, name)
+			}
+		}
+	)
 	_ -> v
 }
 
