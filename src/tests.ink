@@ -60,32 +60,41 @@ SyntaxTests := [
 
 ` used for eval tests `
 EvalTests := [
-	['', '(& (= 3 3) (= 1 2))', false]
-	['', '(+ 1 2 3 4 5)', 15]
-	['', '(+ . (1 2 3 4 5 6))', 21]
-	['', '(- 100 (/ (* 10 10) 5) 40)', 40]
-	['', '(+ 4 (* 2 5))', 14]
-	['', '(+ \'Hello\' \' World\\\'s!\')', 'Hello World\'s!']
-	['', '(if false 2 . (3))', 3]
-	['', '(if (& (= 3 3)
-			(= 1 2))
-		 (+ 1 2 3)
-		 (* 4 5 6))', 120]
-	['', '((fn () \'result\') 100)', 'result']
-	['', '((fn (x) (+ 1 x)) 2)', 3]
-	['', '((fn (x y z) (* x y z)) 2 3 10)', 60]
-	['', [
+	['boolean equalities'
+		'(& (= 3 3) (= 1 2))', false]
+	['variadic addition'
+		'(+ 1 2 3 4 5)', 15]
+	['variadic addition, cons'
+		'(+ . (1 2 3 4 5 6))', 21]
+	['mixed arithmetic'
+		'(- 100 (/ (* 10 10) 5) 40)', 40]
+	['string operations'
+		'(+ \'Hello\' \' World\\\'s!\')', 'Hello World\'s!']
+	['simple if form'
+		'(if false 2 . (3))', 3]
+	['complex if form'
+		'(if (& (= 3 3)
+			    (= 1 2))
+			 (+ 1 2 3)
+			 (* 4 5 6))', 120]
+	['anonymous fns'
+		'((fn () \'result\') 100)', 'result']
+	['anonymous fns with argument'
+		'((fn (x) (+ 1 x)) 2)', 3]
+	['anonymous fns with arguments'
+		'((fn (x y z) (* x y z)) 2 3 10)', 60]
+	['define form', [
 		'(def a 647)'
 		'(+ a a)'
 		'(def doot (fn () (- 1000 (+ a a))))'
 		'(doot)'
 	], ~294]
-	['', [
+	['aliased fns with define forms', [
 		'(def add +)'
 		'(def mul *)'
 		'(mul (add 1 2 3) (mul 10 10))'
 	], 600]
-	['', [
+	['fibonacci generator', [
 		'(def fib
 			  (fn (n)
 			      (if (< n 2)
@@ -93,13 +102,19 @@ EvalTests := [
 					  (+ (fib (- n 1)) (fib (- n 2))))))'
 		'(fib 10)'
 	], 89]
-	['', '(quote 123)', 123]
-	['', ',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
-	['', '(quote (quote 1 2 3))', [',quote', [1, [2, [3, ()]]]]]
-	['', '(car (quote (quote 1 2 3)))', ',quote']
-	['', '(cdr (quote (quote 1 2 3)))', [1, [2, [3, ()]]]]
-	['', '(cons 100 (quote (200 300 400)))', [100, [200, [300, [400, ()]]]]]
-	['', [
+	['literal quote'
+		'(quote (123 . 456))', [123, 456]]
+	['shorthand quote'
+		',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
+	['double quote'
+		'(quote (quote 1 2 3))', [',quote', [1, [2, [3, ()]]]]]
+	['car of quote'
+		'(car (quote (quote 1 2 3)))', ',quote']
+	['cdr of quote'
+		'(cdr (quote (quote 1 2 3)))', [1, [2, [3, ()]]]]
+	['cons of quote'
+		'(cons 100 (quote (200 300 400)))', [100, [200, [300, [400, ()]]]]]
+	['map over list', [
 		'(def map
 			  (fn (xs f)
 			      (if (= xs ())
@@ -110,14 +125,14 @@ EvalTests := [
 		'(def nums (quote (1 2 3 4 5)))'
 		'(map nums square)'
 	], [1, [4, [9, [16, [25, ()]]]]]]
-	['', [
+	['list macro', [
 		'(def list
 			  (macro (items)
 					 (cons (quote quote)
 						   (cons items ()))))'
 		'(list 1 2 3 4 (+ 2 3))'
 	], [1, [2, [3, [4, [[',+', [2, [3, ()]]], ()]]]]]]
-	['', [
+	['sum, size, average', [
 		'(def sum
 			  (fn (xs)
 				  (if (= xs ())
