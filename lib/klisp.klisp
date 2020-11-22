@@ -18,6 +18,8 @@
 ; type assertions
 (def nil?
      (fn (x) (= x ())))
+(def zero?
+     (fn (x) (= x 0)))
 (def number?
      (fn (x) (= (type x) 'number')))
 (def boolean?
@@ -48,6 +50,8 @@
          (if (neg? n)
            (neg 1)
            1)))
+(def sqrt
+     (fn (n) (# n 0.5)))
 (def !=
      (fn (a b) (! (= a b))))
 (def >=
@@ -101,6 +105,31 @@
 
 
 ; list methods
+(def nth
+     (fn (xs i)
+         (if (zero? i)
+           (car xs)
+           (nth (cdr xs) (dec i)))))
+
+(def matches-at?
+     (fn (xs x i)
+         (if (zero? i)
+           (= (car xs) x)
+           (matches-at? (cdr xs) x (dec i)))))
+
+(def index
+     (fn (xs x)
+         (do
+           (def index-from (fn (xs x rest)
+                               (if (= (car xs) x)
+                                 rest
+                                 (index-from (cdr xs) x (inc rest)))))
+           (index-from xs x 0))))
+
+(def contains?
+     (fn (xs x)
+         (< 0 (index xs x))))
+
 (def append
      (fn (xs el)
          (if (nil? xs)
@@ -141,6 +170,15 @@
          (if (nil? xs)
            acc
            (reduce (cdr xs) f (f acc (car xs))))))
+
+(def filter
+     (fn (xs f)
+         (if (nil? xs)
+           ()
+           (if (f (car xs))
+             (cons (car xs)
+                   (filter (cdr xs) f))
+             (filter (cdr xs) f)))))
 
 (def each
      (fn (xs f)

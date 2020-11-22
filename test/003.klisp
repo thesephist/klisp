@@ -1,0 +1,28 @@
+; prime sieve
+
+(def factor?
+     (fn (n m)
+         (zero? (% n m))))
+
+(def prime?
+     ; a number is prime if the number of
+     ; factors between 2 and sqrt(n) is zero
+     (fn (n)
+         (zero? (size
+                  (filter (range 2 (inc (floor (sqrt n))) 1)
+                          (fn (m)
+                              (factor? n m)))))))
+
+(def report-primes-under
+     (fn (n)
+         (do
+           (def primes-under
+                ; start with 2
+                (filter (cddr (seq n)) prime?))
+           (print
+             (size primes-under)
+             'primes under' n 'are' (char 10)
+             primes-under))))
+
+(report-primes-under 50)
+

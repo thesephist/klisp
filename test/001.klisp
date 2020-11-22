@@ -17,6 +17,17 @@
 (print (reduce x-list + 0))
 (print (reduce (cdr x-list) * 1))
 
+; index operations
+(do
+  (def fifteen (nth x-list 5))
+  (def ten
+       (when (matches-at? x-list 24 8) 10))
+  (def six (index x-list 18))
+  (def three
+       (when (contains? x-list 27) 33))
+  (def total (sum (list fifteen ten six three)))
+  (print 'total = 64:' total))
+
 ; for-each
 (each x-list print)
 

@@ -7,6 +7,7 @@
 Syntactically, Klisp borrows from Scheme and Clojure, but tries to be as simple as possible without losing power. You can find some working examples of Klisp code in...
 
 - [The core library, `klisp.klisp`](lib/klisp.klisp)
+- [A simple prime sieve](test/003.klisp)
 - [Integration test cases](test/)
 
 For example, a factorial is easily defined as the product of a range of integers.

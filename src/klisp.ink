@@ -308,6 +308,7 @@ Env := {
 	symbol('point'): makeFn(L => point(L.0))
 	symbol('sin'): makeFn(L => sin(L.0))
 	symbol('cos'): makeFn(L => cos(L.0))
+	symbol('floor'): makeFn(L => floor(L.0))
 	symbol('rand'): makeFn(rand)
 	symbol('time'): makeFn(time)
 

@@ -5,6 +5,7 @@ run:
 	ink ./src/cli.ink test/000.klisp
 	ink ./src/cli.ink test/001.klisp
 	ink ./src/cli.ink test/002.klisp
+	ink ./src/cli.ink test/003.klisp
 
 # run as repl
 repl:

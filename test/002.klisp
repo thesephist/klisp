@@ -22,3 +22,6 @@
 
 (print 'n = 100:' n)
 
+(when false
+  (print 'YOU SHOULD NOT SEE THIS!'))
+
