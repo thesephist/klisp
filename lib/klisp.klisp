@@ -8,6 +8,12 @@
      (fn (x)
          (if x false true)))
 (def ! not)
+(def caar
+     (fn (x) (car (car x))))
+(def cadr
+     (fn (x) (car (cdr x))))
+(def cddr
+     (fn (x) (cdr (cdr x))))
 
 ; type assertions
 (def nil?
@@ -62,12 +68,39 @@
          (map (range 0 n 1)
               (fn () x))))
 
-; list methods
-(def list
-     (macro (items)
-            (cons (quote quote)
-                  (cons items ()))))
+; macros
+(def when
+     (macro (terms)
+            (list ,if (car terms) (cadr terms) ())))
 
+(def unless
+     (macro (terms)
+            (list ,if (car terms) () (cadr terms))))
+
+(def let
+     (macro (terms)
+            (do
+              (def decl (car terms))
+              (def declname (car decl))
+              (def declval (cadr decl))
+              (def body (cadr terms))
+              (list
+                (list ,fn (list declname) body)
+                declval))))
+
+(def lister
+     (fn (items)
+         (if (nil? items)
+           ()
+           (cons ,cons
+                 (cons (car items)
+                       (cons (lister (cdr items))
+                             ()))))))
+(def list
+     (macro (items) (lister items)))
+
+
+; list methods
 (def append
      (fn (xs el)
          (if (nil? xs)
