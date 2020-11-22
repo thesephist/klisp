@@ -103,6 +103,10 @@
 (def list
      (macro (items) (lister items)))
 
+(def do-times
+     (macro (terms)
+            (cons ,do
+                  (times (car terms) (list (cadr terms))))))
 
 ; list methods
 (def nth
@@ -133,7 +137,7 @@
 (def append
      (fn (xs el)
          (if (nil? xs)
-           (cons el ())
+           (list el)
            (cons (car xs)
                  (append (cdr xs) el)))))
 
@@ -192,5 +196,24 @@
      (fn (xs)
          (if (nil? xs)
            0
-           (+ 1 (size (cdr xs))))))
+           (inc (size (cdr xs))))))
+
+; utilities
+(def comment
+     ; add "(comment val)" to an expr head
+     ; to substitute the expr with "val"
+     (macro (terms) (car terms)))
+
+(def log-runtime
+     ; prints runtime (finish - start) of an expression
+     (macro (terms)
+            (list ,do
+                  ,(def start (time))
+                  (list ,def ,-val (cadr terms))
+                  (list ,print
+                        (list ,+ 'Runtime [' (car terms) ']:')
+                        ,(number->string
+                           (* 1000 (- (time) start)))
+                        'ms')
+                  ,-val)))
 
