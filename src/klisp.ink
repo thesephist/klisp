@@ -296,20 +296,29 @@ Env := {
 	symbol('cdr'): makeFn(L => (L.0).1)
 	symbol('cons'): makeFn(L => [L.0, (L.1).0])
 	symbol('len'): makeFn(L => type(L.0) :: {
-		'string' -> symboL?(L.0) :: {
+		'string' -> symbol?(L.0) :: {
 			true -> len(L.0) - 1
 			false -> len(L.0)
 		}
 		_ -> 0
 	})
 
+	` direct ports of monotonic Ink functions `
+	symbol('char'): makeFn(L => char(L.0))
+	symbol('point'): makeFn(L => point(L.0))
+	symbol('sin'): makeFn(L => sin(L.0))
+	symbol('cos'): makeFn(L => cos(L.0))
+	symbol('rand'): makeFn(rand)
+	symbol('time'): makeFn(time)
+
 	` arithmetic and logical operators `
 	symbol('='): makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
-	symbol('<'): makeFn(L => L.0 < (L.1).0)
-	symbol('>'): makeFn(L => L.0 > (L.1).0)
+	symbol('<'): makeFn(L => reduceL(L.1, (a, b) => a < b, L.0))
+	symbol('>'): makeFn(L => reduceL(L.1, (a, b) => a > b, L.0))
 	symbol('+'): makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
 	symbol('-'): makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
 	symbol('*'): makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
+	symbol('#'): makeFn(L => reduceL(L.1, (a, b) => pow(a, b), L.0))
 	symbol('/'): makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
 	symbol('%'): makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
 	symbol('&'): makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))

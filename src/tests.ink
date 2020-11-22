@@ -159,6 +159,19 @@ EvalTests := [
 				  (/ (sum xs) (size xs))))'
 		'(avg (quote (100 200 300 500)))'
 	], 275]
+	['builtin len on string'
+		'(len \'hello\')', 5]
+	['builtin len on symbol'
+		'(len ,hello)', 5]
+	['builtin len on invalid value'
+		'(len 3)', 0]
+	['builtin char'
+		'(+ (char 10) (char 13))', char(10) + char(13)]
+	[
+		'builtin point'
+		'(+ (point \'A\') (point \'B\') (point \'Zte\'))'
+		point('A') + point('B') + point('Zte')
+	]
 ]
 
 
