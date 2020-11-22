@@ -206,9 +206,9 @@ eval := (L, env) => L :: {
 	})(L.1)
 	[symbol('def'), _] -> (
 		name := (L.1).0
-		val := ((L.1).1).0
-		env.(name) := eval(val, env)
-		()
+		val := eval(((L.1).1).0, env)
+		env.(name) := val
+		val
 	)
 	[symbol('if'), _] -> (
 		cond := (L.1).0

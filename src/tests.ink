@@ -98,6 +98,8 @@ EvalTests := [
 		'(def doot (fn () (- 1000 (+ a a))))'
 		'(doot)'
 	], ~294]
+	['define form returns its operand'
+		'(def some-data (quote (my 1 2 3)))', [symbol('my'), [1, [2, [3, ()]]]]]
 	['aliased fns with define forms', [
 		'(def add +)'
 		'(def mul *)'
