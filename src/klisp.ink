@@ -26,6 +26,14 @@ reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 ` turns a name into a Klisp symbol (prefixed with a ,) `
 symbol := s => NUL + s
 
+` memoized symbols (optimization) `
+Quote := symbol('quote')
+Do := symbol('do')
+Def := symbol('def')
+If := symbol('if')
+Fn := symbol('fn')
+Macro := symbol('macro')
+
 ` takes a string, reports whether the string is a Klisp
 	symbol (starts with a comma) or not `
 symbol? := s => type(s) :: {
@@ -94,7 +102,7 @@ read := s => (
 		',' -> (
 			next()
 			ff()
-			[symbol('quote'), [parse(), ()]]
+			[Quote, [parse(), ()]]
 		)
 		'\'' -> (
 			next()
@@ -144,7 +152,7 @@ read := s => (
 	}
 
 	term := [parse(), ()]
-	prog := [symbol('do'), term]
+	prog := [Do, term]
 	(sub := tail => peek() :: {
 		() -> prog
 		_ -> (
@@ -171,7 +179,7 @@ getenv := (env, name) => v := env.(name) :: {
 		})(0)
 		bound? :: {
 			true -> ()
-			false -> e := env.('_env') :: {
+			_ -> e := env.('_env') :: {
 				() -> ()
 				_ -> getenv(e, name)
 			}
@@ -196,85 +204,76 @@ makeMacro := f => () => [true, f]
 
 ` the evaluator `
 eval := (L, env) => L :: {
-	[symbol('quote'), _] -> (L.1).0
-	[symbol('do'), _] -> (sub := form => form.1 :: {
+	[Quote, _] -> L.'1'.0
+	[Def, _] -> (
+		name := L.'1'.0
+		val := eval(L.'1'.'1'.0, env)
+		env.(name) := val
+		val
+	)
+	[Do, _] -> (sub := form => form.1 :: {
 		() -> eval(form.0, env)
 		_ -> (
 			eval(form.0, env)
 			sub(form.1)
 		)
 	})(L.1)
-	[symbol('def'), _] -> (
-		name := (L.1).0
-		val := eval(((L.1).1).0, env)
-		env.(name) := val
-		val
-	)
-	[symbol('if'), _] -> (
-		cond := (L.1).0
-		conseq := ((L.1).1).0
-		altern := (((L.1).1).1).0
+	[If, _] -> (
+		cond := L.'1'.0
+		conseq := L.'1'.'1'.0
+		altern := L.'1'.'1'.'1'.0
 		eval(cond, env) :: {
 			true -> eval(conseq, env)
 			_ -> eval(altern, env)
 		}
 	)
-	[symbol('fn'), _] -> (
-		params := (L.1).0
-		body := ((L.1).1).0
-		makeFn(args => (
-			envc := (sub := (envc, params, args) => [params, args] :: {
-				[(), _] -> envc
-				[_, ()] -> envc
+	[Fn, _] -> (
+		params := L.'1'.0
+		body := L.'1'.'1'.0
+		makeFn(args => eval(
+			body
+			(sub := (envc, params, args) => params = () | args = () :: {
+				true -> envc
 				_ -> (
-					arg := args.0
-					param := params.0
-					envc.(param) := arg
+					envc.(params.0) := args.0
 					sub(envc, params.1, args.1)
 				)
 			})({'_env': env}, params, args)
-			eval(body, envc)
 		))
 	)
-	[symbol('macro'), _] -> (
-		params := (L.1).0
-		body := ((L.1).1).0
-		makeMacro(args => (
-			envc := (sub := (envc, params, args) => [params, args] :: {
-				[(), _] -> envc
-				[_, ()] -> envc
+	[Macro, _] -> (
+		params := L.'1'.0
+		body := L.'1'.'1'.0
+		makeMacro(args => eval(
+			body
+			(sub := (envc, params, args) => params = () | args = () :: {
+				true -> envc
 				_ -> (
-					arg := args.0
-					param := params.0
-					envc.(param) := arg
+					envc.(params.0) := args.0
 					sub(envc, params.1, args.1)
 				)
 				` NOTE: all arguments to a macro are passed as the first parameter `
 			})({'_env': env}, params, [args, ()])
-			eval(body, envc)
 		))
 	)
 	_ -> type(L) :: {
 		'composite' -> (
-			func := L.0
 			argcs := L.1
-
-			funcStub := eval(func, env)()
-			macro? := funcStub.0
+			funcStub := eval(L.0, env)()
 			func := eval(funcStub.1, env)
 
-			macro? :: {
+			` funcStub.0 reports whether a function is a macro `
+			funcStub.0 :: {
 				true -> (
 					transformed := func(argcs)
 					eval(transformed, env)
 				)
-				false -> (
-					args := []
+				_ -> (
 					reduceL(argcs, (head, x) => (
 						cons := [eval(x, env)]
 						head.1 := cons
 						cons
-					), args)
+					), args := [])
 					func(args.1)
 				)
 			}
@@ -292,13 +291,13 @@ Env := {
 	` constants and fundamental forms `
 	symbol('true'): true
 	symbol('false'): false
-	symbol('car'): makeFn(L => (L.0).0)
-	symbol('cdr'): makeFn(L => (L.0).1)
-	symbol('cons'): makeFn(L => [L.0, (L.1).0])
+	symbol('car'): makeFn(L => L.'0'.0)
+	symbol('cdr'): makeFn(L => L.'0'.1)
+	symbol('cons'): makeFn(L => [L.0, L.'1'.0])
 	symbol('len'): makeFn(L => type(L.0) :: {
 		'string' -> symbol?(L.0) :: {
 			true -> len(L.0) - 1
-			false -> len(L.0)
+			_ -> len(L.0)
 		}
 		_ -> 0
 	})
