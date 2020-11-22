@@ -26,6 +26,10 @@ reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 ` turns a name into a Klisp symbol (prefixed with a ,) `
 symbol := s => NUL + s
 
+` takes a string, reports whether the string is a Klisp
+	symbol (starts with a NUL byte) or not `
+symbol? := s => s.0 = NUL
+
 ` memoized symbols (optimization) `
 Quote := symbol('quote')
 Do := symbol('do')
@@ -33,13 +37,6 @@ Def := symbol('def')
 If := symbol('if')
 Fn := symbol('fn')
 Macro := symbol('macro')
-
-` takes a string, reports whether the string is a Klisp
-	symbol (starts with a comma) or not `
-symbol? := s => type(s) :: {
-	'string' -> s.0 = NUL
-	_ -> false
-}
 
 ` reader object constructor,
 	state containing a cursor through a string `
@@ -203,71 +200,68 @@ makeFn := f => () => [false, f]
 makeMacro := f => () => [true, f]
 
 ` the evaluator `
-eval := (L, env) => L :: {
-	[Quote, _] -> L.'1'.0
-	[Def, _] -> (
-		name := L.'1'.0
-		val := eval(L.'1'.'1'.0, env)
-		env.(name) := val
-		val
-	)
-	[Do, _] -> (sub := form => form.1 :: {
-		() -> eval(form.0, env)
-		_ -> (
-			eval(form.0, env)
-			sub(form.1)
+eval := (L, env) => type(L) :: {
+	'composite' -> L.0 :: {
+		Quote -> L.'1'.0
+		Def -> (
+			name := L.'1'.0
+			val := eval(L.'1'.'1'.0, env)
+			env.(name) := val
+			val
 		)
-	})(L.1)
-	[If, _] -> (
-		cond := L.'1'.0
-		conseq := L.'1'.'1'.0
-		altern := L.'1'.'1'.'1'.0
-		eval(cond, env) :: {
-			true -> eval(conseq, env)
-			_ -> eval(altern, env)
-		}
-	)
-	[Fn, _] -> (
-		params := L.'1'.0
-		body := L.'1'.'1'.0
-		makeFn(args => eval(
-			body
-			(sub := (envc, params, args) => params = () | args = () :: {
-				true -> envc
-				_ -> (
-					envc.(params.0) := args.0
-					sub(envc, params.1, args.1)
-				)
-			})({'_env': env}, params, args)
-		))
-	)
-	[Macro, _] -> (
-		params := L.'1'.0
-		body := L.'1'.'1'.0
-		makeMacro(args => eval(
-			body
-			(sub := (envc, params, args) => params = () | args = () :: {
-				true -> envc
-				_ -> (
-					envc.(params.0) := args.0
-					sub(envc, params.1, args.1)
-				)
-				` NOTE: all arguments to a macro are passed as the first parameter `
-			})({'_env': env}, params, [args, ()])
-		))
-	)
-	_ -> type(L) :: {
-		'composite' -> (
+		Do -> (sub := form => form.1 :: {
+			() -> eval(form.0, env)
+			_ -> (
+				eval(form.0, env)
+				sub(form.1)
+			)
+		})(L.1)
+		If -> (
+			cond := L.'1'.0
+			conseq := L.'1'.'1'.0
+			altern := L.'1'.'1'.'1'.0
+			eval(cond, env) :: {
+				true -> eval(conseq, env)
+				_ -> eval(altern, env)
+			}
+		)
+		Fn -> (
+			params := L.'1'.0
+			body := L.'1'.'1'.0
+			makeFn(args => eval(
+				body
+				(sub := (envc, params, args) => params = () | args = () :: {
+					true -> envc
+					_ -> (
+						envc.(params.0) := args.0
+						sub(envc, params.1, args.1)
+					)
+				})({'_env': env}, params, args)
+			))
+		)
+		Macro -> (
+			params := L.'1'.0
+			body := L.'1'.'1'.0
+			makeMacro(args => eval(
+				body
+				(sub := (envc, params, args) => params = () | args = () :: {
+					true -> envc
+					_ -> (
+						envc.(params.0) := args.0
+						sub(envc, params.1, args.1)
+					)
+					` NOTE: all arguments to a macro are passed as the first parameter `
+				})({'_env': env}, params, [args, ()])
+			))
+		)
+		_ -> (
 			argcs := L.1
 			funcStub := eval(L.0, env)()
 			func := eval(funcStub.1, env)
 
 			` funcStub.0 reports whether a function is a macro `
 			funcStub.0 :: {
-				true -> (
-					transformed := func(argcs)
-					eval(transformed, env)
-				)
+				true -> eval(func(argcs), env)
 				_ -> (
 					reduceL(argcs, (head, x) => (
 						cons := [eval(x, env)]
@@ -278,12 +272,12 @@ eval := (L, env) => L :: {
 				)
 			}
 		)
-		'string' -> symbol?(L) :: {
-			true -> getenv(env, L)
-			_ -> L
-		}
+	}
+	'string' -> symbol?(L) :: {
+		true -> getenv(env, L)
 		_ -> L
 	}
+	_ -> L
 }
 
 ` the default environment contains core constants and functions `
