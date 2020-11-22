@@ -278,13 +278,14 @@ eval := (L, env) => L :: {
 
 ` the default environment contains core constants and functions `
 Env := {
+	` constants and fundamental forms `
 	',true': true
 	',false': false
 	',car': makeFn(L => (L.0).0)
 	',cdr': makeFn(L => (L.0).1)
 	',cons': makeFn(L => [L.0, (L.1).0])
-	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
-	',type': makeFn(L => type(L.0))
+
+	` arithmetic and logical operators `
 	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
 	',<': makeFn(L => L.0 < (L.1).0)
 	',>': makeFn(L => L.0 > (L.1).0)
@@ -296,6 +297,23 @@ Env := {
 	',&': makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))
 	',|': makeFn(L => reduceL(L.1, (a, b) => a | b, L.0))
 	',^': makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
+
+	` types and conversions `
+	',type': makeFn(L => type(L.0))
+	',string->number': makeFn(L => (
+		operand := L.0
+		type(operand) :: {
+			'string' -> every(map(operand, c => digit?(c) | c = '.')) :: {
+				true -> number(operand)
+				_ -> 0
+			}
+			_ -> 0
+		}
+	))
+	',number->string': makeFn(L => number(l.0))
+
+	` I/O and system `
+	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
 }
 
 ` the printer
