@@ -82,9 +82,11 @@ Klisp has two significant flaws that were non-goals for this project.
 
 As noted above, Klisp's semantics match Ink's closely, because Ink is semantically already lispy, with primitive values and one complex type (a dictionary/associative array, which is used to implement lists in Klisp).
 
-Most Klisp values, except for the list and the function, are implemented transparently in the interpreter as Ink values. For example, the number 42 in Klisp is also just the number `42` within the Interpreter -- no boxing or wrapper types.
+Most Klisp values, except for the symbol (atom), the list, and the function, are implemented transparently in the interpreter as Ink values. For example, the number 42 in Klisp is also just the number `42` within the Interpreter -- no boxing or wrapper types.
 
-**Lists** in Klisp are implemented with cons cells, and cons cells are implemented with a list of length 2 (`[_, _]`) in the underlying Ink code.
+**Symbols** in Klisp are implemented as strings, which are variable-length byte arrays. To differentiate symbols from strings, symbols are prefixed with the null character `char(0)`.
+
+**Lists** are implemented with cons cells, and cons cells are implemented with a list of length 2 (`[_, _]`) in the underlying Ink code.
 
 **Functions and macros** are implemented using a higher order function signature in the interpreter that takes Klisp values as arguments. You can read more about this design in [the interpreter source](https://github.com/thesephist/klisp/blob/main/src/klisp.ink#L172).
 

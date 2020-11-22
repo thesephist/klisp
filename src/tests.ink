@@ -7,6 +7,7 @@ reduce := std.reduce
 
 klisp := load('klisp')
 
+symbol := klisp.symbol
 read := klisp.read
 eval := klisp.eval
 print := klisp.print
@@ -28,33 +29,33 @@ SyntaxTests := [
 	['freestanding number'
 		'240', 240]
 	['freestanding symbol'
-		'test-word', ',test-word']
+		'test-word', symbol('test-word')]
 	['freestanding null'
 		'()', ()]
 	['single symbol form'
-		'(x)', [',x', ()]]
+		'(x)', [symbol('x'), ()]]
 	['cons of symbols'
-		'(x . y)', [',x', ',y']]
+		'(x . y)', [symbol('x'), symbol('y')]]
 	['escaped strings'
-		'(+ \'Hello\' \' World\\\'s!\')', [',+', ['Hello', [' World\'s!', ()]]]]
+		'(+ \'Hello\' \' World\\\'s!\')', [symbol('+'), ['Hello', [' World\'s!', ()]]]]
 	['list of symbols'
-		'(a b c)', [',a', [',b', [',c', ()]]]]
+		'(a b c)', [symbol('a'), [symbol('b'), [symbol('c'), ()]]]]
 	['list of symbols in cons'
-		'(x . (y . ()))', [',x', [',y', ()]]]
+		'(x . (y . ()))', [symbol('x'), [symbol('y'), ()]]]
 	['list numbers'
-		'(+ 1 23 45.6)', [',+', [1, [23, [45.6, ()]]]]]
+		'(+ 1 23 45.6)', [symbol('+'), [1, [23, [45.6, ()]]]]]
 	['nested lists'
-		'((x) (y)( z))', [[',x', ()], [[',y', ()], [[',z', ()], ()]]]]
+		'((x) (y)( z))', [[symbol('x'), ()], [[symbol('y'), ()], [[symbol('z'), ()], ()]]]]
 	[
 		'Multiline whitespaces'
 		'(a( b  ' + Newline + 'c )d    e  )'
-		[',a', [[',b', [',c', ()]], [',d', [',e', ()]]]]
+		[symbol('a'), [[symbol('b'), [symbol('c'), ()]], [symbol('d'), [symbol('e'), ()]]]]
 	]
 	[
 		'Comments ignored by reader'
 		'(a b ; (more sexprs)' + Newline + '; (x (y . z))' +
 			Newline + '; (e f g)' + Newline + 'c)'
-		[',a', [',b', [',c', ()]]]
+		[symbol('a'), [symbol('b'), [symbol('c'), ()]]]
 	]
 ]
 
@@ -115,9 +116,9 @@ EvalTests := [
 	['shorthand quote'
 		',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
 	['double quote'
-		'(quote (quote 1 2 3))', [',quote', [1, [2, [3, ()]]]]]
+		'(quote (quote 1 2 3))', [symbol('quote'), [1, [2, [3, ()]]]]]
 	['car of quote'
-		'(car (quote (quote 1 2 3)))', ',quote']
+		'(car (quote (quote 1 2 3)))', symbol('quote')]
 	['cdr of quote'
 		'(cdr (quote (quote 1 2 3)))', [1, [2, [3, ()]]]]
 	['cons of quote'
@@ -139,7 +140,7 @@ EvalTests := [
 					 (cons (quote quote)
 						   (cons items ()))))'
 		'(list 1 2 3 4 (+ 2 3))'
-	], [1, [2, [3, [4, [[',+', [2, [3, ()]]], ()]]]]]]
+	], [1, [2, [3, [4, [[symbol('+'), [2, [3, ()]]], ()]]]]]]
 	['sum, size, average', [
 		'(def sum
 			  (fn (xs)

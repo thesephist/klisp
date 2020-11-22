@@ -15,6 +15,7 @@ trim := str.trim
 
 Newline := char(10)
 Tab := char(9)
+NUL := char(0)
 
 ` helper function. Like std.reduce, but traverses a list of sexprs `
 reduceL := (L, f, init) => (sub := (acc, node) => node :: {
@@ -23,13 +24,12 @@ reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 })(init, L)
 
 ` turns a name into a Klisp symbol (prefixed with a ,) `
-` TODO: make this prefixed witih a null byte instead `
-symbol := s => ',' + s
+symbol := s => NUL + s
 
 ` takes a string, reports whether the string is a Klisp
 	symbol (starts with a comma) or not `
 symbol? := s => type(s) :: {
-	'string' -> s.0 = ','
+	'string' -> s.0 = NUL
 	_ -> false
 }
 
@@ -94,7 +94,7 @@ read := s => (
 		',' -> (
 			next()
 			ff()
-			[',quote', [parse(), ()]]
+			[symbol('quote'), [parse(), ()]]
 		)
 		'\'' -> (
 			next()
@@ -144,7 +144,7 @@ read := s => (
 	}
 
 	term := [parse(), ()]
-	prog := [',do', term]
+	prog := [symbol('do'), term]
 	(sub := tail => peek() :: {
 		() -> prog
 		_ -> (
@@ -196,21 +196,21 @@ makeMacro := f => () => [true, f]
 
 ` the evaluator `
 eval := (L, env) => L :: {
-	[',quote', _] -> (L.1).0
-	[',do', _] -> (sub := form => form.1 :: {
+	[symbol('quote'), _] -> (L.1).0
+	[symbol('do'), _] -> (sub := form => form.1 :: {
 		() -> eval(form.0, env)
 		_ -> (
 			eval(form.0, env)
 			sub(form.1)
 		)
 	})(L.1)
-	[',def', _] -> (
+	[symbol('def'), _] -> (
 		name := (L.1).0
 		val := ((L.1).1).0
 		env.(name) := eval(val, env)
 		()
 	)
-	[',if', _] -> (
+	[symbol('if'), _] -> (
 		cond := (L.1).0
 		conseq := ((L.1).1).0
 		altern := (((L.1).1).1).0
@@ -219,7 +219,7 @@ eval := (L, env) => L :: {
 			_ -> eval(altern, env)
 		}
 	)
-	[',fn', _] -> (
+	[symbol('fn'), _] -> (
 		params := (L.1).0
 		body := ((L.1).1).0
 		makeFn(args => (
@@ -236,7 +236,7 @@ eval := (L, env) => L :: {
 			eval(body, envc)
 		))
 	)
-	[',macro', _] -> (
+	[symbol('macro'), _] -> (
 		params := (L.1).0
 		body := ((L.1).1).0
 		makeMacro(args => (
@@ -290,12 +290,12 @@ eval := (L, env) => L :: {
 ` the default environment contains core constants and functions `
 Env := {
 	` constants and fundamental forms `
-	',true': true
-	',false': false
-	',car': makeFn(L => (L.0).0)
-	',cdr': makeFn(L => (L.0).1)
-	',cons': makeFn(L => [L.0, (L.1).0])
-	',len': makeFn(L => type(L.0) :: {
+	symbol('true'): true
+	symbol('false'): false
+	symbol('car'): makeFn(L => (L.0).0)
+	symbol('cdr'): makeFn(L => (L.0).1)
+	symbol('cons'): makeFn(L => [L.0, (L.1).0])
+	symbol('len'): makeFn(L => type(L.0) :: {
 		'string' -> symboL?(L.0) :: {
 			true -> len(L.0) - 1
 			false -> len(L.0)
@@ -304,21 +304,21 @@ Env := {
 	})
 
 	` arithmetic and logical operators `
-	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
-	',<': makeFn(L => L.0 < (L.1).0)
-	',>': makeFn(L => L.0 > (L.1).0)
-	',+': makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
-	',-': makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
-	',*': makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
-	',/': makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
-	',%': makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
-	',&': makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))
-	',|': makeFn(L => reduceL(L.1, (a, b) => a | b, L.0))
-	',^': makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
+	symbol('='): makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
+	symbol('<'): makeFn(L => L.0 < (L.1).0)
+	symbol('>'): makeFn(L => L.0 > (L.1).0)
+	symbol('+'): makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
+	symbol('-'): makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
+	symbol('*'): makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
+	symbol('/'): makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
+	symbol('%'): makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
+	symbol('&'): makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))
+	symbol('|'): makeFn(L => reduceL(L.1, (a, b) => a | b, L.0))
+	symbol('^'): makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
 
 	` types and conversions `
-	',type': makeFn(L => type(L.0))
-	',string->number': makeFn(L => (
+	symbol('type'): makeFn(L => type(L.0))
+	symbol('string->number'): makeFn(L => (
 		operand := L.0
 		type(operand) :: {
 			'string' -> every(map(operand, c => digit?(c) | c = '.')) :: {
@@ -328,10 +328,10 @@ Env := {
 			_ -> 0
 		}
 	))
-	',number->string': makeFn(L => string(L.0))
+	symbol('number->string'): makeFn(L => string(L.0))
 
 	` I/O and system `
-	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
+	symbol('print'): makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
 }
 
 ` the printer
