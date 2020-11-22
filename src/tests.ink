@@ -83,6 +83,14 @@ EvalTests := [
 		'((fn (x) (+ 1 x)) 2)', 3]
 	['anonymous fns with arguments'
 		'((fn (x y z) (* x y z)) 2 3 10)', 60]
+	['string->number'
+		'(+ (string->number \'3.14\')
+			(string->number \'20\')
+			(string->number (+ \'10\' \'0\')))', 123.14]
+	['number->string'
+		'(+ (number->string 1.23)
+			(number->string 40)
+			(number->string (- 100 90)))', '1.230000004010']
 	['define form', [
 		'(def a 647)'
 		'(+ a a)'
