@@ -22,6 +22,17 @@ reduceL := (L, f, init) => (sub := (acc, node) => node :: {
 	_ -> sub(f(acc, node.0), node.1)
 })(init, L)
 
+` turns a name into a Klisp symbol (prefixed with a ,) `
+` TODO: make this prefixed witih a null byte instead `
+symbol := s => ',' + s
+
+` takes a string, reports whether the string is a Klisp
+	symbol (starts with a comma) or not `
+symbol? := s => type(s) :: {
+	'string' -> s.0 = ','
+	_ -> false
+}
+
 ` reader object constructor,
 	state containing a cursor through a string `
 reader := s => (
@@ -127,7 +138,7 @@ read := s => (
 			ff()
 			every(map(span, c => digit?(c) | c = '.')) :: {
 				true -> number(span)
-				_ -> ',' + span
+				_ -> symbol(span)
 			}
 		)
 	}
@@ -268,8 +279,8 @@ eval := (L, env) => L :: {
 				)
 			}
 		)
-		'string' -> L.0 :: {
-			',' -> getenv(env, L)
+		'string' -> symbol?(L) :: {
+			true -> getenv(env, L)
 			_ -> L
 		}
 		_ -> L
@@ -284,6 +295,13 @@ Env := {
 	',car': makeFn(L => (L.0).0)
 	',cdr': makeFn(L => (L.0).1)
 	',cons': makeFn(L => [L.0, (L.1).0])
+	',len': makeFn(L => type(L.0) :: {
+		'string' -> symboL?(L.0) :: {
+			true -> len(L.0) - 1
+			false -> len(L.0)
+		}
+		_ -> 0
+	})
 
 	` arithmetic and logical operators `
 	',=': makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
@@ -310,7 +328,7 @@ Env := {
 			_ -> 0
 		}
 	))
-	',number->string': makeFn(L => number(l.0))
+	',number->string': makeFn(L => string(L.0))
 
 	` I/O and system `
 	',print': makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
@@ -336,8 +354,8 @@ print := L => type(L) :: {
 		'(' + cat(list, ' ') + ')'
 	)
 	_ -> type(L) :: {
-		'string' -> L.0 :: {
-			',' -> slice(L, 1, len(L))
+		'string' -> symbol?(L) :: {
+			true -> slice(L, 1, len(L))
 			_ -> '\'' + replace(replace(L, '\\', '\\\\'), '\'', '\\\'') + '\''
 		}
 		_ -> string(L)
