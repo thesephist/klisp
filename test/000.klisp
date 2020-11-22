@@ -1,9 +1,9 @@
 ; basic expression
 (do
-  (print (quote (1 2 3)))
+  (print ,(1 2 3))
   (print (+ 'Hello,' ' ' 'World!'))
   (print (range 0 200 40))
-  (print (map (list 10 9 8 7 6)
+  (print (map (list (+ 5 5) 9 (+ 4 4) 7 6)
               (fn (n)
                   (inc (inc n))))))
 

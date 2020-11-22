@@ -340,7 +340,16 @@ Env := {
 	symbol('number->string'): makeFn(L => string(L.0))
 
 	` I/O and system `
-	symbol('print'): makeFn(L => log(reduceL(L.1, (a, b) => a + ' ' + print(b), print(L.0))))
+	symbol('print'): makeFn(L => log(reduceL(
+		L.1, (a, b) => a + ' ' + (type(b) :: {
+			'string' -> b
+			_ -> print(b)
+		})
+		type(L.0) :: {
+			'string' -> L.0
+			_ -> print(L.0)
+		}
+	)))
 }
 
 ` the printer

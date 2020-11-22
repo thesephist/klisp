@@ -1,0 +1,24 @@
+;, macros
+
+(def n 100)
+
+(print 'n = 100:' n)
+
+(let (n 12)
+  (do
+    (def nums
+         ; odd numbers from 1
+         (list (+ 0 1)
+               (% 100 27 4)
+               (/ (+ n (inc n)) 5)
+               (+ 3 4)
+               (# 3 2)))
+    (def double
+         (fn (n) (+ n n)))
+    (print 'n = 12:' 12)
+    (print nums)
+    (when (= (car nums) 1)
+      (print (map nums double)))))
+
+(print 'n = 100:' n)
+

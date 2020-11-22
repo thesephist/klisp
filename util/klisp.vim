@@ -29,16 +29,21 @@ syntax keyword klispKeyword def contained
 syntax keyword klispKeyword if contained
 syntax keyword klispKeyword fn contained
 syntax keyword klispKeyword macro contained
+" language builtin forms
+syntax keyword klispKeyword car contained
+syntax keyword klispKeyword cdr contained
+syntax keyword klispKeyword cons contained
+" core library forms
+syntax keyword klispKeyword when contained
+syntax keyword klispKeyword unless contained
+syntax keyword klispKeyword let contained
+syntax keyword klispKeyword list contained
 highlight link klispKeyword Keyword
 
 " functions
 syntax match klispFunctionForm "\v\(\s*[A-Za-z0-9\-?!+*/:><=%&|]*" contains=klispFunctionName,klispKeyword
 syntax match klispFunctionName "\v[A-Za-z0-9\-?!+*/:><=%&|]*" contained
 highlight link klispFunctionName Function
-
-syntax match klispDefinitionForm "\v\(\s*\:\s*(\(\s*)?[A-Za-z0-9\-?!+*/:><=%&|]*" contains=klispDefinition
-syntax match klispDefinition "\v[A-Za-z0-9\-?!+*/:><=%&|]*" contained
-highlight link klispDefinition Type
 
 " strings
 syntax region klispString start=/\v'/ skip=/\v(\\.|\r|\n)/ end=/\v'/
