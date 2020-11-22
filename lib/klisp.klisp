@@ -28,6 +28,20 @@
      (fn (x) x))
 
 ; basic math
+(def neg
+     (fn (n) (- 0 n)))
+(def neg?
+     (fn (n) (< n 0)))
+(def abs
+     (fn (n)
+         (if (neg? n)
+           (neg n)
+           n)))
+(def sign
+     (fn (n)
+         (if (neg? n)
+           (neg 1)
+           1)))
 (def !=
      (fn (a b) (! (= a b))))
 (def >=
@@ -78,6 +92,9 @@
                            (append acc i))
                       acc)))
            (sub start (list)))))
+
+(def seq
+     (fn (n) (range 0 n 1)))
 
 (def map
      (fn (xs f)
