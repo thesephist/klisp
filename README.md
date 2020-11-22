@@ -1,6 +1,6 @@
 # Klisp 🐍
 
-**Klisp** is a very minimal **LISP** written in about 200 lines of [In**K**](https://dotink.co). It's primarily a padagogical project -- I made it to understand Lisp better. (That's another way of saying: don't use it for serious things.) Ink's semantics are already quite lispy, so Klisp builds on Ink's semantics and adds an S-expression grammar and a repl, a true read-eval-print loop.
+**Klisp** is a very minimal **LISP** written in about 200 lines of [In**K**](https://dotink.co). It's primarily a pedagogical project -- I made it to understand Lisp better. (That's another way of saying: don't use it for serious things.) Ink's semantics are already quite lispy, so Klisp builds on Ink's semantics and adds an S-expression grammar and a repl, a true read-eval-print loop.
 
 ![Examples in a Klisp repl](docs/term.png)
 
@@ -19,7 +19,7 @@ For example, a factorial is easily defined as the product of a range of integers
 (fact 10) ; => 3628800
 ```
 
-And the fibonacci sequence is recursively defined.
+And the Fibonacci sequence is recursively defined.
 
 ```lisp
 (def fib
@@ -50,7 +50,7 @@ Klisp is a true lisp-1, with a minimal core of 6 special forms (`quote`, `do`, `
     ```
 - **macro** is like `fn`, but defines a macro instead of a normal function. The `list` macro is implemented in this way.
 
-These special forms, along with a small set of builtin functions like arithmetic operators and `car` / `cdr` / `cons`, are provided in the default environment. Every other language feature is implemented in the userspace in `lib/klisp.klisp`.
+These special forms, along with a small set of builtin functions like arithmetic operators and `car` / `cdr` / `cons`, are provided in the default environment. Every other language feature, including fundamental forms like `let` and `list`, is implemented in the userspace in `lib/klisp.klisp` as functions or macros.
 
 ### Usage
 
@@ -76,8 +76,8 @@ Klisp is composed of two Ink source files, `src/klisp.ink` and `src/cli.ink`, an
 
 Klisp has two significant flaws that were non-goals for this project.
 
-1. Klisp's current interpreter **does not handle errors very well**. This was mostly an educational project, and I don't think I'll end up writing much Klisp code, so preferred concision over error recovery in the interpreter. If I do end up writing lots of Klisp, I miight come back and add better error handling in the interpreter. As it stands today, syntactic or semantic errors in Klisp code will crash the interpreter.
-2. Klisp is **not fast**. Actually, it's quite slow. That's because it's written in a dynamic, interpreted language itself. The Ink interpreter I've been testing Klisp with is a [tree-walk interpreter written in Go](https://dotink.co), which is itself comparative to Python on a good day. Although faster, alternative interpreters are being worked on, Klisp isn't designed to be fast, just an educational prototype mostly for myself.
+1. Klisp's current interpreter **does not handle errors very well**. This was mostly an educational project, and I don't think I'll end up writing much Klisp code, so preferred concision over error recovery in the interpreter. If I do end up writing lots of Klisp, I might come back and add better error handling in the interpreter. As it stands today, syntactic or semantic errors in Klisp code will crash the interpreter.
+2. Klisp is **not fast**. Actually, it's quite slow. That's because it's written in a dynamic, interpreted language itself. The Ink interpreter I've been testing Klisp with is a [tree-walk interpreter written in Go](https://github.com/thesephist/ink), which is itself comparable to Python on a good day. Although faster, alternative interpreters are being worked on, Klisp isn't designed to be fast, just an educational prototype mostly for myself.
 
 ## Implementation
 
@@ -89,6 +89,6 @@ Most Klisp values, except for the symbol (atom), the list, and the function, are
 
 **Lists** are implemented with cons cells, and cons cells are implemented with a list of length 2 (`[_, _]`) in the underlying Ink code.
 
-**Functions and macros** are implemented using a higher order function signature in the interpreter that takes Klisp values as arguments. You can read more about this design in [the interpreter source](https://github.com/thesephist/klisp/blob/main/src/klisp.ink#L172).
+**Functions and macros** are implemented using a higher order function signature in the interpreter that takes Klisp values as arguments. You can read more about this design in [the interpreter source](https://github.com/thesephist/klisp/blob/main/src/klisp.ink#L188).
 
 The rest of the ~200 lines of the interpreter core in `src/klisp.ink` are well commented and written to be legible. If you're curious about Klisp's inner workings, the source code is a great starting point. If you have questions, feel free to [open an issue](https://github.com/thesephist/klisp/issues).
