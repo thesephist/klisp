@@ -133,16 +133,46 @@ EvalTests := [
 					  (cons (f (car xs))
 						    (map (cdr xs) f)))))'
 		'(def square (fn (x) (* x x)))'
-		'(def nums (quote (1 2 3 4 5)))'
+		'(def nums ,(1 2 3 4 5))'
 		'(map nums square)'
 	], [1, [4, [9, [16, [25, ()]]]]]]
 	['list macro', [
+		'(def lister
+			  (fn (items)
+				  (if (= items ())
+					()
+				    (cons ,cons
+						  (cons (car items)
+							    (cons (lister (cdr items))
+									  ()))))))'
 		'(def list
-			  (macro (items)
-					 (cons (quote quote)
-						   (cons items ()))))'
-		'(list 1 2 3 4 (+ 2 3))'
-	], [1, [2, [3, [4, [[symbol('+'), [2, [3, ()]]], ()]]]]]]
+			  (macro (items) (lister items)))'
+		'(def square (fn (x) (* x x)))'
+		'(list 1 2 3 4 (+ 2 3) (list 1 2 3))'
+	], [1, [2, [3, [4, [5, [[1, [2, [3, ()]]], ()]]]]]]]
+	['let macro', [
+		'(def lister
+			  (fn (items)
+				  (if (= items ())
+					()
+				    (cons ,cons
+						  (cons (car items)
+							    (cons (lister (cdr items))
+									  ()))))))'
+		'(def list
+			  (macro (items) (lister items)))'
+		'(def let
+			  (macro (terms)
+					 (do
+					   (def decl (car terms))
+					   (def declname (car decl))
+					   (def declval (car (cdr decl)))
+					   (def body (car (cdr terms)))
+					   (list
+						 (list ,fn (list declname) body)
+						 declval))))'
+		'(let (a 10) (let (b 20) (* a b)))'
+	], 200]
 	['sum, size, average', [
 		'(def sum
 			  (fn (xs)

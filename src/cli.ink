@@ -19,33 +19,32 @@ Env := klisp.Env
 
 Version := '0.1'
 
-main := () => (
-	paths := slice(args(), 2, len(args()))
-	path := paths.0 :: {
-		() -> (
-			log(f('Klisp interpreter v{{0}}.', [Version]))
-			(sub := env => (
-				out('> ')
-				scan(line => line :: {
-					() -> log('EOF.')
-					_ -> (
-						log(print(eval(read(line), env)))
-						sub(env)
-					)
-				})
-			))(Env)
-		)
-		_ -> readFile(path, file => file :: {
-			() -> log(f('error: could not read {{0}}', [path]))
-			_ -> eval(read(file), Env)
-		})
-	}
-)
-
 ` initialize environment and start `
 readFile('./lib/klisp.klisp', file => file :: {
 	() -> log('error: could not locate standard library')
-	_ -> eval(read(file), Env)
+	_ -> (
+		eval(read(file), Env)
+
+		paths := slice(args(), 2, len(args()))
+		path := paths.0 :: {
+			() -> (
+				log(f('Klisp interpreter v{{0}}.', [Version]))
+				(sub := env => (
+					out('> ')
+					scan(line => line :: {
+						() -> log('EOF.')
+						_ -> (
+							log(print(eval(read(line), env)))
+							sub(env)
+						)
+					})
+				))(Env)
+			)
+			_ -> readFile(path, file => file :: {
+				() -> log(f('error: could not read {{0}}', [path]))
+				_ -> eval(read(file), Env)
+			})
+		}
+	)
 })
-main()
 
