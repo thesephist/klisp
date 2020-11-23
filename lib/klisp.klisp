@@ -8,10 +8,14 @@
      (fn (x)
          (if x false true)))
 (def ! not)
+
+; cons cell shorthands
 (def caar
      (fn (x) (car (car x))))
 (def cadr
      (fn (x) (car (cdr x))))
+(def cdar
+     (fn (x) (cdr (car x))))
 (def cddr
      (fn (x) (cdr (cdr x))))
 
@@ -224,6 +228,13 @@
            (inc (size (cdr xs))))))
 
 ; utilities
+(def println
+     (macro (terms)
+            (quasiquote
+              (do
+                (unquote (cons ,print terms))
+                (print (char 10))))))
+
 (def comment
      ; add "(comment val)" to an expr head
      ; to substitute the expr with "val"
@@ -236,8 +247,8 @@
               (do
                 (def start (time))
                 (def -val (unquote (cadr terms)))
-                (print (+ 'Runtime for ' (unquote (car terms)) ':')
-                       (number->string (* 1000 (- (time) start)))
-                       'ms')
+                (println (+ 'Runtime for ' (unquote (car terms)) ':')
+                         (number->string (* 1000 (- (time) start)))
+                         'ms')
                 -val))))
 

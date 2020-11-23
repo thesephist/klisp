@@ -19,7 +19,7 @@
            (def primes-under
                 ; start with 2
                 (filter (cddr (seq n)) prime?))
-           (print
+           (println
              (size primes-under)
              'primes under' n 'are' (char 10)
              primes-under))))

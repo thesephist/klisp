@@ -5,17 +5,17 @@
      (fn (n) (* n n)))
 
 ; join, append list
-(print (append x-list 1000))
-(print (join (range 1 6 1) x-list))
+(println (append x-list 1000))
+(println (join (range 1 6 1) x-list))
 
 ; map list
-(print (map x-list square))
-(print (map x-list
-            (fn (n) (/ n 3))))
+(println (map x-list square))
+(println (map x-list
+              (fn (n) (/ n 3))))
 
 ; reduction
-(print (reduce x-list + 0))
-(print (reduce (cdr x-list) * 1))
+(println (reduce x-list + 0))
+(println (reduce (cdr x-list) * 1))
 
 ; index operations
 (do
@@ -26,8 +26,8 @@
   (def three
        (when (contains? x-list 27) 33))
   (def total (sum (list fifteen ten six three)))
-  (print 'total = 64:' total))
+  (println 'total = 64:' total))
 
 ; for-each
-(each x-list print)
+(each x-list println)
 

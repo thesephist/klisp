@@ -2,7 +2,7 @@
 
 (def n 100)
 
-(print 'n = 100:' n)
+(println 'n = 100:' n)
 
 (let (n 12)
   (do
@@ -15,13 +15,13 @@
                (# 3 2)))
     (def double
          (fn (n) (+ n n)))
-    (print 'n = 12:' 12)
-    (print nums)
+    (println 'n = 12:' 12)
+    (println nums)
     (when (= (car nums) 1)
-      (print (map nums double)))))
+      (println (map nums double)))))
 
-(print 'n = 100:' n)
+(println 'n = 100:' n)
 
 (when false
-  (print 'YOU SHOULD NOT SEE THIS!'))
+  (println 'YOU SHOULD NOT SEE THIS!'))
 

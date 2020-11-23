@@ -1,21 +1,21 @@
 ; basic expression
 (do
-  (print ,(1 2 3))
-  (print (+ 'Hello,' ' ' 'World!'))
-  (print (range 0 200 40))
-  (print (map (list (+ 5 5) 9 (+ 4 4) 7 6)
-              (fn (n)
-                  (inc (inc n))))))
+  (println ,(1 2 3))
+  (println (+ 'Hello,' ' ' 'World!'))
+  (println (range 0 200 40))
+  (println (map (list (+ 5 5) 9 (+ 4 4) 7 6)
+                (fn (n)
+                    (inc (inc n))))))
 
 ; joining and manipulating lists
 (def nums (join (range 0 10 1)
                 (range 10 100 10)))
-(print (size nums) nums)
-(print (reduce (map nums inc) + 0))
+(println (size nums) nums)
+(println (reduce (map nums inc) + 0))
 
 ; powers of two
 (def powers-of-two
      (map (range 1 11 1)
           (fn (n) (prod (times n 2)))))
-(print powers-of-two)
+(println powers-of-two)
 
