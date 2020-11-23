@@ -296,6 +296,22 @@ Env := {
 		}
 		_ -> 0
 	})
+	` (get-slice s a b) returns slice of string s between
+		indexes [a, b). For characters out of bounds, it returns '' `
+	symbol('get-slice'): makeFn(L => type(L.0) :: {
+		'string' -> slice(L.0, L.'1'.0, L.'1'.'1'.0)
+		_ -> ''
+	})
+	` (set-slice! s a t) overwrites bytes in s with bytes from t
+		starting at index a. set-slice! does not grow s if out of bounds
+		due to an interpreter design limitation. It returns the new s. `
+	symbol('set-slice!'): makeFn(L => type(L.0) :: {
+		'string' -> (
+			s := L.0
+			s.(L.'1'.0) := L.'1'.'1'.0
+		)
+		_ -> ''
+	})
 
 	` direct ports of monotonic Ink functions `
 	symbol('char'): makeFn(L => char(L.0))
@@ -326,7 +342,10 @@ Env := {
 		operand := L.0
 		type(operand) :: {
 			'string' -> every(map(operand, c => digit?(c) | c = '.')) :: {
-				true -> number(operand)
+				true -> len(operand) :: {
+					0 -> 0
+					_ -> number(operand)
+				}
 				_ -> 0
 			}
 			_ -> 0

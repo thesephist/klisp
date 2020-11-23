@@ -88,6 +88,10 @@ EvalTests := [
 		'(+ (string->number \'3.14\')
 			(string->number \'20\')
 			(string->number (+ \'10\' \'0\')))', 123.14]
+	['string->number on invalid strings = 0'
+		'(+ (string->number \'broken\')
+			(string->number \'0.234h\')
+			(string->number \'\'))', 0]
 	['number->string'
 		'(+ (number->string 1.23)
 			(number->string 40)
@@ -195,6 +199,26 @@ EvalTests := [
 		'(len ,hello)', 5]
 	['builtin len on invalid value'
 		'(len 3)', 0]
+	['get-slice in bounds'
+		'(get-slice \'hello world\' 4 8)', 'o wo']
+	['get-slice partial out of bounds'
+		'(get-slice \'hello world\' 4 100)', 'o world']
+	['get-slice completely out of bounds'
+		'(get-slice \'hello world\' 50 100)', '']
+	['set-slice!', [
+		'(def s \'hello world\')'
+		'(set-slice! s 6 \'klisp\')'
+		's'
+	], 'hello klisp']
+	['set-slice! returns mutated string', [
+		'(def s \'hello world\')'
+		'(set-slice! s 6 \'klisp\')'
+	], 'hello klisp']
+	['set-slice! does not grow underlying string', [
+		'(def s \'hello world\')'
+		'(set-slice! s 6 \'klispers everywhere\')'
+		's'
+	], 'hello klisp']
 	['builtin char'
 		'(+ (char 10) (char 13))', char(10) + char(13)]
 	[
