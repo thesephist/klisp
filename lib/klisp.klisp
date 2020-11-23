@@ -97,6 +97,8 @@
                 (list ,fn (list declname) body)
                 declval))))
 
+; TODO: make this inline, there's no need for this to recursively
+; call itself instead of recursively calling fn list itself
 (def lister
      (fn (items)
          (if (nil? items)
@@ -111,6 +113,7 @@
 (def quasiquoter
      (fn (terms)
          (do
+           ; TODO: make this inline, it never calls itself, only quasiquote
            (def qq (fn (term)
                        (if (list? term)
                          (if (= ,unquote (car term))
@@ -121,6 +124,9 @@
 (def quasiquote
      (macro (terms)
             (cons ,list
+                  ; TODO: make this an inline fn
+                  ; TODO: write tests that exercise quasiquote
+                  ;     -> maybe log-runtime
                   (quasiquoter (car terms)))))
 
 (def do-times
@@ -234,13 +240,12 @@
 (def log-runtime
      ; prints runtime (finish - start) of an expression
      (macro (terms)
-            (list ,do
-                  ,(def start (time))
-                  (list ,def ,-val (cadr terms))
-                  (list ,print
-                        (list ,+ 'Runtime [' (car terms) ']:')
-                        ,(number->string
-                           (* 1000 (- (time) start)))
-                        'ms')
-                  ,-val)))
+            (quasiquote
+              (do
+                (def start (time))
+                (def -val (unquote (cadr terms)))
+                (print (+ 'Runtime for ' (unquote (car terms)) ':')
+                       (number->string (* 1000 (- (time) start)))
+                       'ms')
+                -val))))
 

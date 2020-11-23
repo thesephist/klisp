@@ -24,5 +24,7 @@
              'primes under' n 'are' (char 10)
              primes-under))))
 
-(report-primes-under 50)
+(log-runtime
+  'report-primes-under'
+  (report-primes-under 50))
 
