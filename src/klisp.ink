@@ -176,7 +176,7 @@ getenv := (env, name) => v := env.(name) :: {
 		})(0)
 		bound? :: {
 			true -> ()
-			_ -> e := env.('_env') :: {
+			_ -> e := env.('-env') :: {
 				() -> ()
 				_ -> getenv(e, name)
 			}
@@ -185,7 +185,7 @@ getenv := (env, name) => v := env.(name) :: {
 	_ -> v
 }
 
-` Klisp has two kinds of values represented as Ink functions.
+` Klisp has two kinds of values represented as "functions".
 
 	1. Functions, defined by (fn ...). Klisp functions take finite
 		arguments evaluated eagerly in-scope.
@@ -193,11 +193,12 @@ getenv := (env, name) => v := env.(name) :: {
 		containing the arguments and returns some new piece of syntax.
 		Arguments are not evaluated before call.
 
-	In Klisp, fns and macros are both Ink functions, specifically higher order
-	functions. The first invocation reports whether the function is a macro or
-	a normal function, and the second invocation runs the actual function. `
-makeFn := f => () => [false, f]
-makeMacro := f => () => [true, f]
+	In Klisp, fns and macros are represented as size-3 arrays to differentiate
+	from 2-element arrays that represent sexprs. The first value reports
+	whether the function is a macro or a normal function, and the second
+	value is the actual function. `
+makeFn := f => [false, f, ()]
+makeMacro := f => [true, f, ()]
 
 ` the evaluator `
 eval := (L, env) => type(L) :: {
@@ -236,7 +237,7 @@ eval := (L, env) => type(L) :: {
 						envc.(params.0) := args.0
 						sub(envc, params.1, args.1)
 					)
-				})({'_env': env}, params, args)
+				})({'-env': env}, params, args)
 			))
 		)
 		Macro -> (
@@ -251,12 +252,12 @@ eval := (L, env) => type(L) :: {
 						sub(envc, params.1, args.1)
 					)
 					` NOTE: all arguments to a macro are passed as the first parameter `
-				})({'_env': env}, params, [args, ()])
+				})({'-env': env}, params, [args, ()])
 			))
 		)
 		_ -> (
 			argcs := L.1
-			funcStub := eval(L.0, env)()
+			funcStub := eval(L.0, env)
 			func := eval(funcStub.1, env)
 
 			` funcStub.0 reports whether a function is a macro `
@@ -348,8 +349,8 @@ Env := {
 
 ` the printer
 	print prints a value as sexprs, preferring lists and falling back to (a . b) `
-print := L => type(L) :: {
-	'composite' -> (
+print := L => L :: {
+	[_, _] -> (
 		list := (sub := (term, acc) => term :: {
 			[_, [_, _]] -> (
 				acc.len(acc) := print(term.0)
@@ -365,6 +366,7 @@ print := L => type(L) :: {
 		})(L, [])
 		'(' + cat(list, ' ') + ')'
 	)
+	[_, _, _] -> '(function)'
 	_ -> type(L) :: {
 		'string' -> symbol?(L) :: {
 			true -> slice(L, 1, len(L))

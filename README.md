@@ -89,6 +89,6 @@ Most Klisp values, except for the symbol (atom), the list, and the function, are
 
 **Lists** are implemented with cons cells, and cons cells are implemented with a list of length 2 (`[_, _]`) in the underlying Ink code.
 
-**Functions and macros** are implemented using a higher order function signature in the interpreter that takes Klisp values as arguments. You can read more about this design in [the interpreter source](https://github.com/thesephist/klisp/blob/main/src/klisp.ink#L188).
+**Functions and macros** are implemented using an indirection using an object in the interpreter that wraps a function taking Klisp values as arguments. You can read more about this design in [the interpreter source](https://github.com/thesephist/klisp/blob/main/src/klisp.ink#L188).
 
 The rest of the ~200 lines of the interpreter core in `src/klisp.ink` are well commented and written to be legible. If you're curious about Klisp's inner workings, the source code is a great starting point. If you have questions, feel free to [open an issue](https://github.com/thesephist/klisp/issues).
