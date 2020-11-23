@@ -30,6 +30,11 @@
      (fn (x) (= (type x) 'function')))
 (def list?
      (fn (x) (= (type x) 'composite')))
+(def pair?
+     (fn (x)
+         (if (list? x)
+           (= (size x) 2)
+           false)))
 
 ; identity
 (def id
@@ -103,6 +108,21 @@
 (def list
      (macro (items) (lister items)))
 
+(def quasiquoter
+     (fn (terms)
+         (do
+           (def qq (fn (term)
+                       (if (list? term)
+                         (if (= ,unquote (car term))
+                           (cadr term)
+                           (list ,quasiquote term))
+                         (list ,quote term))))
+           (map terms qq))))
+(def quasiquote
+     (macro (terms)
+            (cons ,list
+                  (quasiquoter (car terms)))))
+
 (def do-times
      (macro (terms)
             (cons ,do
@@ -168,6 +188,13 @@
            ()
            (cons (f (car xs))
                  (map (cdr xs) f)))))
+
+(def map-deep
+     (fn (xs f)
+         (map xs (fn (x)
+                     (if (list? x)
+                       (map-deep x f)
+                       (f x))))))
 
 (def reduce
      (fn (xs f acc)
