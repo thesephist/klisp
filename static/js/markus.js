@@ -33,12 +33,11 @@ const BODY_TEXT_TRANSFORMS = new Map([
     // RegExp: replacement
     [/--/g, '—'], // em-dash from two dashes
     [/(\?!|!\?)/g, '‽'], // interrobang!
-    [/\$\$/g, '💵'],
     [/:\)/g, '🙂'],
     [/<3/g, '❤️'],
     [/:wave:/g, '👋'],
     [/->/g, '→'],
-    [/<-/g, '→'],
+    [/<-/g, '←'],
 ]);
 
 //> A generator that yields characters from a string, used for parsing text.

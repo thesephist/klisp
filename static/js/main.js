@@ -252,6 +252,17 @@ class Block extends Component {
             </div>`;
         }
 
+        // Render LaTeX equations using KaTeX synchronously with block render
+        requestAnimationFrame(() => {
+            renderMathInElement(this.node, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true},
+                ],
+            });
+        });
         return jdom`<div class="block block-text" onclick=${this.startEditing}>
             ${buttons}
             ${Markus(text.trim())}
@@ -427,15 +438,18 @@ class App extends Component {
                 main = jdom`<main>
                     <h1>About Nightvale</h1>
                     <p>
-                        Nightvale is an interactive literate programming environment that runs
-                        <a href="https://github.com/thesephist/klisp">Klisp</a>, a Scheme-like dialect
-                        of lisp that runs on the <a href="https://dotink.co">Ink programming language</a>.
-                        Nightvale is under active development to become a better environment for thinking
-                        computationally and quantitatively.
+                        Nightvale is an interactive literate programming environment that runs <a
+                        href="https://github.com/thesephist/klisp" target="_blank">Klisp</a>, a
+                        Scheme-like dialect of lisp that runs on the <a href="https://dotink.co"
+                        target="_blank">Ink programming language</a>.  Nightvale is under active
+                        development to become a better environment for thinking computationally
+                        and quantitatively.
                     </p>
                     <h2>Inspirations and prior work</h2>
                     <p>
                         Interactive, literate programming environments has a rich and illustrious history.
+                        Nightvale is a small step from me towards big ideas presented in the following
+                        research projects, interesting ideas, and past products.
                     </p>
                 </main>`;
                 break;
@@ -504,6 +518,7 @@ class App extends Component {
                         evt.preventDefault();
                         router.go('/about');
                     }}>about</a>
+                    <a class="desktop" href="https://github.com/thesephist/klisp" target="_blank">github</a>
                     ${this.docID ? jdom`<a href="#" onclick=${evt => {
                         evt.preventDefault();
                         if (!confirm(`Delete the doc ${this.docID} forever?`)) {
