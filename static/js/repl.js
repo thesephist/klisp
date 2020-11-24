@@ -54,6 +54,86 @@ function remoteEval(expr) {
     }).then(resp => resp.text());
 }
 
+// Borrowed from thesephist/sandbox, an event handler that does some light
+// parentheses matching / deletion on certain events. Used by Component Block.
+function handleEditorKeystroke(evt) {
+    switch (evt.key) {
+        case 'Tab': {
+            evt.preventDefault();
+            const idx = evt.target.selectionStart;
+            if (idx !== null) {
+                const input = evt.target.value;
+                const front = input.substr(0, idx);
+                const back = input.substr(idx);
+                evt.target.value = front + '    ' + back;
+                evt.target.setSelectionRange(idx + 4, idx + 4);
+            }
+            break;
+        }
+        case '(': {
+            evt.preventDefault();
+            const idx = evt.target.selectionStart;
+            if (idx !== null) {
+                const input = evt.target.value;
+                const front = input.substr(0, idx);
+                const back = input.substr(idx);
+                evt.target.value = front + '()' + back;
+                evt.target.setSelectionRange(idx + 1, idx + 1);
+            }
+            break;
+        }
+        case ')': {
+            const idx = evt.target.selectionStart;
+            if (idx !== null) {
+                const input = evt.target.value;
+                if (input[idx] === ')') {
+                    evt.preventDefault();
+                    evt.target.setSelectionRange(idx + 1, idx + 1);
+                }
+            }
+            break;
+        }
+        case '\'': {
+            evt.preventDefault();
+            const idx = evt.target.selectionStart;
+            if (idx !== null) {
+                const input = evt.target.value;
+                if (input[idx] === '\'') {
+                    evt.preventDefault();
+                    evt.target.setSelectionRange(idx + 1, idx + 1);
+                } else {
+                    const front = input.substr(0, idx);
+                    const back = input.substr(idx);
+                    // if trying to escape this quote, do not add a pair
+                    if (input[idx - 1] === '\'') {
+                        evt.target.value = front + '\'' + back;
+                    } else {
+                        evt.target.value = front + '\'\'' + back;
+                    }
+                    evt.target.setSelectionRange(idx + 1, idx + 1);
+                }
+            }
+            break;
+        }
+        case 'Backspace': {
+            // Backspace on a opening pair should take its closing sibling wth it
+            const idx = evt.target.selectionStart;
+            if (idx !== null) {
+                const input = evt.target.value;
+                if ((input[idx - 1] === '(' && input[idx] === ')')
+                    || (input[idx - 1] === '\'' && input[idx] === '\'')) {
+                    evt.preventDefault();
+                    const front = input.substr(0, idx - 1);
+                    const back = input.substr(idx + 1);
+                    evt.target.value = front + back;
+                    evt.target.setSelectionRange(idx - 1, idx - 1);
+                }
+            }
+            break;
+        }
+    }
+}
+
 class Block extends Component {
     init(para, remover, {addTextBlock, addCodeBlock}) {
         this.editing = false;
@@ -76,7 +156,12 @@ class Block extends Component {
     async eval(evt) {
         this.evaling = true;
         this.render();
-        this.evaled = await remoteEval(evt ? evt.target.value : this.record.get('text'));
+
+        try {
+            this.evaled = await remoteEval(evt ? evt.target.value : this.record.get('text'));
+        } catch (e) {
+            this.evaled = 'eval-error';
+        }
         this.evaling = false;
         this.render();
     }
@@ -125,6 +210,17 @@ class Block extends Component {
                         onkeydown=${evt => {
                             if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey)) {
                                 this.eval(evt);
+                            } else {
+                                handleEditorKeystroke(evt);
+
+                                // if evt.preventDefault() was called in handleEditorKeystroke,
+                                // the related oninput event will not fire, causing this change
+                                // not to be reflected in our data models without this manual update.
+                                if (!evt.defaultPrevented) {
+                                    this.record.update({
+                                        text: evt.target.value,
+                                    });
+                                }
                             }
                         }} />
                 </div>

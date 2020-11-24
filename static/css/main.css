@@ -168,12 +168,11 @@ footer .right {
 .block-code {
     border-radius: 6px;
     overflow: hidden;
+    transition: opacity .3s;
 }
 
 .block-code.evaling {
     opacity: .5;
-    transition: opacity .3s;
-    pointer-events: none;
 }
 
 .block-code-result {

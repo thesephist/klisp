@@ -11,6 +11,10 @@ run:
 repl:
 	rlwrap ink ./src/cli.ink
 
+# run nightvale server
+serve:
+	ink ./src/cli.ink --port 7900
+
 # run all tests under test/
 check: run
 	ink ./src/tests.ink

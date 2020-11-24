@@ -8,8 +8,8 @@ Type=simple
 User=nightvale
 LimitNOFILE=1024
 
-Restart=on-failure
-RestartSec=10
+Restart=always
+RestartSec=5
 StartLimitIntervalSec=60
 
 WorkingDirectory=/home/nightvale/klisp

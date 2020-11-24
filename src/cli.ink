@@ -24,7 +24,14 @@ makeFn := klisp.makeFn
 reduceL := klisp.reduceL
 Env := klisp.Env
 
+nightvale := load('nightvale')
+
+safeEval := nightvale.evalAtMostSteps
+
 Version := '0.1'
+` after some testing, considering Go/Ink's stack limit,
+	this seemed like a reasonable number for a web repl `
+MaxWebReplSteps := 100000
 
 withCore := cb => readFile('./lib/klisp.klisp', file => file :: {
 	() -> log('error: could not locate standard library')
@@ -70,7 +77,7 @@ Args.2 :: {
 							}
 						)))
 
-						out := print(eval(read(req.body), env))
+						out := print(safeEval(read(req.body), env, MaxWebReplSteps))
 						log(f('(eval {{0}}) => {{1}}', [req.body, out]))
 						stdout + out
 					)
