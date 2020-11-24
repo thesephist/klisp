@@ -7,6 +7,7 @@ body {
 
     background: var(--c-bg);
     font-size: 20px;
+	margin: 0;
 }
 
 body,
@@ -74,8 +75,10 @@ footer {
 .left,
 .right {
     flex-grow: 0;
-    flex-shrink: 0;
+    flex-shrink: 1;
+	white-space: nowrap;
 }
+
 .center {
     flex-grow: 1;
     flex-shrink: 1;
@@ -85,8 +88,29 @@ footer {
     margin: 0 1em;
 }
 
+header a {
+	text-decoration: none;
+}
+
+header a:hover {
+	opacity: .6;
+}
+
+header .left {
+	/* in case of really long doc names */
+	overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .docID {
 	color: #888;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: pointer;
+}
+
+.docID:hover {
+	text-decoration: underline;
 }
 
 nav {
@@ -245,6 +269,18 @@ footer .right {
 .inputRow button {
 	flex-grow: 0;
 	flex-shrink: 0;
+}
+
+/* DOC LIST */
+
+.doc-list {
+	padding-left: 0;
+}
+
+.doc-list-li {
+	list-style: none;
+	line-height: 1.5em;
+	margin-bottom: .3em;
 }
 
 @media only screen and (max-width: 550px) {

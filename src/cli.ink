@@ -9,6 +9,8 @@ f := std.format
 scan := std.scan
 clone := std.clone
 slice := std.slice
+cat := std.cat
+map := std.map
 readFile := std.readFile
 writeFile := std.writeFile
 
@@ -89,15 +91,18 @@ Args.2 :: {
 				)
 				'PUT' -> (
 					dbPath := 'db/' + params.docID
-					writeFile(dbPath, req.body, r => r :: {
-						true -> end({
-							status: 200
-							headers: {'Content-Type': 'text/plain'}
-							body: '1'
-						})
-						_ -> end({
-							status: 500
-							body: 'error saving doc'
+					readFile(dbPath, file => file :: {
+						() -> end({status: 404, body: 'doc not found'})
+						_ -> writeFile(dbPath, req.body, r => r :: {
+							true -> end({
+								status: 200
+								headers: {'Content-Type': 'text/plain'}
+								body: '1'
+							})
+							_ -> end({
+								status: 500
+								body: 'error saving doc'
+							})
 						})
 					})
 				)
@@ -125,7 +130,7 @@ Args.2 :: {
 				'DELETE' -> (
 					dbPath := 'db/' + params.docID
 					delete(dbPath, evt => evt :: {
-						'data' -> ({
+						'end' -> end({
 							status: 204
 							body: ''
 						})
@@ -135,6 +140,20 @@ Args.2 :: {
 						})
 					})
 				)
+				_ -> end(MethodNotAllowed)
+			})
+			addRoute('/doc/', params => (req, end) => req.method :: {
+				'GET' -> dir('db', evt => evt.type :: {
+					'error' -> end({
+						status: 500
+						body: 'error reading database'
+					})
+					_ -> end({
+						status: 200
+						headers: {'Content-Type': 'text/plain'}
+						body: cat(map(evt.data, entry => entry.name), char(10))
+					})
+				})
 				_ -> end(MethodNotAllowed)
 			})
 
