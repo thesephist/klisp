@@ -1,0 +1,130 @@
+html,
+body {
+	background: #f8f8f8;
+	font-size: 20px;
+}
+
+body,
+textarea,
+input,
+button {
+	font-size: 1em;
+	font-family: 'IBM Plex Sans', Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+    font-weight: normal;
+}
+
+button {
+    cursor: pointer;
+}
+
+div > a,
+p > a {
+	color: inherit;
+}
+
+textarea {
+    display: block;
+}
+
+textarea:focus {
+    outline: none;
+}
+
+/* LAYOUT */
+
+header,
+main,
+footer {
+	max-width: 840px;
+	width: calc(100% - 2em);
+	margin: 32px auto 64px auto;
+}
+
+/* HEADER, FOOTER */
+
+header,
+footer {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.left,
+.right {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+.center {
+	flex-grow: 1;
+	flex-shrink: 1;
+	height: 1px;
+	width: 0;
+	background: #888;
+	margin: 0 1em;
+}
+
+/* BLOCK */
+
+.block {
+	margin: 1.5em 0;
+	width: 100%;
+	position: relative;
+	line-height: 1.5em;
+    border-radius: 2px;
+    padding: 0;
+}
+
+.block-text:hover {
+    background: rgba(0, 0, 0, .05);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, .05);
+    cursor: pointer;
+}
+
+.block-buttons {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+    display: none;
+}
+
+.block:hover .block-buttons {
+    display: block;
+}
+
+.block-code.evaling {
+	opacity: .5;
+	transition: opacity .3s;
+	pointer-events: none;
+}
+
+.block-code-result {
+    padding: .8em .5em;
+    background: #f0f0f0;
+    word-wrap: break-all;
+    box-sizing: border-box;
+}
+
+.textarea-code,
+.textarea-text {
+    padding: .8em .5em;
+	border: 0;
+	resize: none;
+	box-sizing: border-box;
+}
+
+.textarea-code,
+.block-code-result {
+	width: 100%;
+	font-family: 'IBM Plex Mono', 'Menlo', monospace;
+}
+
+.textarea-text {
+	width: 100%;
+}
+
