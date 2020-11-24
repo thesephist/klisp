@@ -3,11 +3,29 @@ const {
 	StoreOf,
 	Component,
 	ListOf,
+	Router,
 } = window.Torus;
 
 const BLOCK = {
 	TEXT: 0,
 	CODE: 1,
+}
+
+//> Debounce coalesces multiple calls to the same function in a short
+//  period of time into one call, by cancelling subsequent calls within
+//  a given timeframe.
+const debounce = (fn, delayMillis) => {
+    let lastRun = 0;
+    let to = null;
+    return (...args) => {
+        clearTimeout(to);
+        const now = Date.now();
+        const dfn = () => {
+            lastRun = now;
+            fn(...args);
+        }
+        to = setTimeout(dfn, delayMillis);
+    }
 }
 
 class Para extends Record {
@@ -51,7 +69,7 @@ class Block extends Component {
 		this.bind(para, this.render.bind(this));
 
         // if code block, exec code on first load
-        if (this.evaled == null) {
+        if (this.record.get('type') == BLOCK.CODE && this.evaled == null) {
             this.eval();
         }
 	}
@@ -80,7 +98,7 @@ class Block extends Component {
 				tabIndex=${this.evaling ? -1 : 0}>
 				${buttons}
 				<div class="block-code-editor">
-                    <div class="p-spacer ${text.endsWith('\n') ? 'padded' : ''}">${text}</div>
+                    <div class="p-spacer ${text.endsWith('\n') || !text ? 'padded' : ''}">${text}</div>
 					<textarea
 						class="textarea-code"
 						value=${text}
@@ -101,7 +119,7 @@ class Block extends Component {
 
 		if (this.editing) {
 			return jdom`<div class="block block-text-editor">
-                <div class="p-spacer ${text.endsWith('\n') ? 'padded' : ''}">${text}</div>
+                <div class="p-spacer ${text.endsWith('\n') || !text ? 'padded' : ''}">${text}</div>
                 <textarea
                     class="textarea-text"
                     value=${text}
@@ -119,7 +137,7 @@ class Block extends Component {
 
 		return jdom`<div class="block block-text" onclick=${this.startEditing}>
 			${buttons}
-			${Markus(text)}
+			${Markus(text.trim())}
 		</div>`
 	}
 }
@@ -158,12 +176,19 @@ function code(text) {
 	});
 }
 
+const MODE = {
+	DOC: 0,
+	ABOUT: 1,
+	NEW: 2,
+}
+
 class App extends Component {
-	init() {
+	init(router) {
+        this.docID = null;
+		this.mode = MODE.DOC;
+
 		this.doc = new Doc([
-			para('# A tour of Nightvale'),
-			para(`*Nightvale* is a rich interactive notebook that runs Klisp. You can click on any block of text to edit it as Markdown or modify a program.`),
-			code('(+ 1 2 3 4)'),
+			para('_Loading..._'),
 		]);
 		this.editor = new Editor(this.doc, {
 			addTextBlock: childIndexes => this.doc.create(null, {
@@ -177,34 +202,135 @@ class App extends Component {
                 ...childIndexes,
             }),
 		});
+
+        document.addEventListener('input', debounce(evt => {
+            if (evt.target.tagName.toLowerCase() !== 'textarea') {
+                return;
+            }
+
+            if (this.docID) {
+                fetch(`/doc/${this.docID}`, {
+                    method: 'POST',
+                    body: JSON.stringify(this.doc.serialize()),
+                });
+            } else {
+                // TODO: maybe save to localStorage instead?
+                console.info('Not persisting sandbox document.');
+            }
+        }, 500));
+
+		this.bind(router, async ([name, params]) => {
+			switch (name) {
+				case 'doc': {
+                    this.docID = params.docID;
+					try {
+						const docResp = await fetch('/doc/' + encodeURIComponent(this.docID));
+						const docJSON = await docResp.json();
+						this.doc.reset(docJSON.map(blk => new Para(blk)));
+					} catch (e) {
+						alert('Couldn\'t load doc');
+					}
+					break;
+				}
+				case 'about': {
+					this.mode = MODE.ABOUT;
+					this.render();
+					break;
+				}
+				case 'new': {
+					this.mode = MODE.NEW;
+					this.render();
+					break;
+				}
+				default: {
+					this.doc.reset([
+						para('# A tour of Nightvale'),
+						para('*Nightvale* is a rich interactive notebook that runs Klisp. You can click on any block of text to edit it as Markdown or modify a program.'),
+						code('(+ 1 2 3 4)'),
+					]);
+					break;
+				}
+			}
+		});
 	}
 	compose() {
+		let main = this.editor.node;
+		switch (this.mode) {
+			case MODE.NEW: {
+				let name = 'doc-' + Math.random().toString().substr(2);
+				main = jdom`<main>
+					<h1>New doc</h1>
+					<p>Create one here.</p>
+                    <div class="inputRow">
+                        <input
+                            type="text"
+                            class="paper"
+                            placeholder="klisp-sandbox"
+                            oninput=${evt => {
+                                name = evt.target.value.trim();
+                                evt.target.value = name;
+                            }} />
+                        <button class="movable accent paper"
+                            onclick=${async evt => {
+                            fetch(`/doc/${name}`, {
+                                method: 'POST',
+                                body: JSON.stringify([
+                                    para('# ' + name).serialize(),
+                                ]),
+                            }).then(resp => {
+                                router.go(`/d/${name}`);
+                            }).catch(e => {
+                                alert(`Error creating doc: ${e}`);
+                            });
+                        }}>Create</button>
+                    </div>
+				</main>`;
+				break;
+			}
+			case MODE.ABOUT:
+				main = jdom`<main>
+					<h1>About Nightvale</h1>
+					<p>Nightvale is an interactive Klisp notebook.</p>
+				</main>`;
+				break;
+		}
+
 		return jdom`<div class="app">
 			<header>
 				<div class="left">
 					<a href="/">Nightvale</a>
+                    ${this.mode == MODE.DOC ? (
+                        jdom`<span class="docID"> / ${this.docID || 'sandbox'}</span>`
+                    ) : null}
 				</div>
 				<div class="center">
 				</div>
-				<div class="right">
-					<a href="/about">about</a>
-				</div>
+				<nav class="right">
+                    <a href="/about" onclick=${evt => {
+                        evt.preventDefault();
+                        router.go('/about');
+                    }}>about</a>
+                    <a href="/new" onclick=${evt => {
+                        evt.preventDefault();
+                        router.go('/new');
+                    }}>new</a>
+				</nav>
 			</header>
-			${this.editor.node}
+			${main}
 			<footer>
 				<div class="left">
-					Made by
-					<a href="https://thesephist.com/">Linus</a>
+                    <span class="desktop">Made by </span>
+					<a href="https://thesephist.com/" target="_blank">Linus</a>
 				</div>
 				<div class="center">
 				</div>
 				<div class="right">
                     <em>
-                        Built with 
-                        <a href="https://github.com/thesephist/klisp">Klisp</a>,
-                        <a href="https://dotink.co/">Ink</a>,
-                        and
-                        <a href="https://github.com/thesephist/torus">Torus</a>
+                        <span class="desktop">Built with </span>
+                        <a href="https://github.com/thesephist/klisp" target="_blank">Klisp</a>,
+                        <a href="https://dotink.co/" target="_blank">Ink</a>,
+                        ${'&'}
+                        <a href="https://github.com/thesephist/torus" target="_blank">Torus</a>
                     </em>
 				</div>
 			</footer>
@@ -212,6 +338,13 @@ class App extends Component {
 	}
 }
 
-const app = new App();
+const router = new Router({
+	doc: '/d/:docID',
+	about: '/about',
+	new: '/new',
+	default: '/',
+});
+
+const app = new App(router);
 document.body.appendChild(app.node);
 

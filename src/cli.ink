@@ -10,6 +10,7 @@ scan := std.scan
 clone := std.clone
 slice := std.slice
 readFile := std.readFile
+writeFile := std.writeFile
 
 klisp := load('klisp')
 
@@ -74,6 +75,47 @@ Args.2 :: {
 				})
 				_ -> end(MethodNotAllowed)
 			})
+			addRoute('/doc/*docID', params => (req, end) => req.method :: {
+				'GET' -> (
+					dbPath := 'db/' + params.docID
+					readFile(dbPath, file => file :: {
+						() -> end({status: 404, body: 'doc not found'})
+						_ -> end({
+							status: 200
+							headers: {'Content-Type': 'application/json'}
+							body: file
+						})
+					})
+				)
+				'POST' -> (
+					dbPath := 'db/' + params.docID
+					writeFile(dbPath, req.body, r => r :: {
+						true -> end({
+							status: 200
+							headers: {'Content-Type': 'text/plain'}
+							body: '1'
+						})
+						_ -> end({
+							status: 500
+							body: 'error saving doc'
+						})
+					})
+				)
+				'DELETE' -> (
+					dbPath := 'db/' + params.docID
+					delete(dbPath, evt => evt :: {
+						'data' -> ({
+							status: 204
+							body: ''
+						})
+						'error' -> end({
+							status: 500
+							body: 'error deleting doc'
+						})
+					})
+				)
+				_ -> end(MethodNotAllowed)
+		    })
 
 			serveStatic := path => (req, end) => req.method :: {
 				'GET' -> (

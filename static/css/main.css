@@ -3,6 +3,7 @@ body {
     --c-bg: #f8f8f8;
     --font-sans: 'IBM Plex Sans', Helvetica, sans-serif;
     --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+	--paper-accent: #222;
 
     background: var(--c-bg);
     font-size: 20px;
@@ -40,6 +41,10 @@ textarea:focus {
     outline: none;
 }
 
+.mobile {
+	display: none;
+}
+
 /* LAYOUT */
 
 header,
@@ -72,6 +77,29 @@ footer {
     width: 0;
     background: #888;
     margin: 0 1em;
+}
+
+.docID {
+	color: #888;
+}
+
+nav {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+nav a {
+	display: block;
+	margin-left: .8em;
+}
+
+nav a:first-child {
+	margin-left: 0;
+}
+
+footer .right {
+	font-style: italic;
 }
 
 /* BLOCK */
@@ -191,5 +219,41 @@ footer {
     text-decoration: underline;
     margin: 0;
     padding: 0;
+}
+
+/* STATIC PAGES */
+
+.inputRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	width: 100%;
+	justify-content: flex-start;
+}
+
+.inputRow input {
+	margin-right: .8em;
+	width: 20em;
+	min-width: 0;
+	flex-grow: 0;
+	flex-shrink: 1;
+}
+
+.inputRow button {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+
+@media only screen and (max-width: 550px) {
+	html,
+	body {
+		font-size: 16px;
+	}
+	.mobile {
+		display: initial;
+	}
+	.desktop {
+		display: none;
+	}
 }
 

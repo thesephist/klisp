@@ -1,0 +1,28 @@
+[Unit]
+Description=nightvale notebook server (klisp)
+ConditionPathExists=/home/nightvale/go/bin/ink
+After=network.target
+
+[Service]
+Type=simple
+User=nightvale
+LimitNOFILE=1024
+
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=60
+
+WorkingDirectory=/home/nightvale/klisp
+ExecStart=/home/nightvale/go/bin/ink src/fileserver.ink
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/nightvale
+ExecStartPre=/bin/chown syslog:adm /var/log/nightvale
+ExecStartPre=/bin/chmod 755 /var/log/nightvale
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nightvale
+
+[Install]
+WantedBy=multi-user.target
