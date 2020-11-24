@@ -1,30 +1,35 @@
 html,
 body {
-	background: #f8f8f8;
-	font-size: 20px;
+    --c-bg: #f8f8f8;
+    --font-sans: 'IBM Plex Sans', Helvetica, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+
+    background: var(--c-bg);
+    font-size: 20px;
 }
 
 body,
 textarea,
 input,
 button {
-	font-size: 1em;
-	font-family: 'IBM Plex Sans', Helvetica, sans-serif;
+    font-size: 1em;
+    font-family: var(--font-sans);
 }
 
 h1,
 h2,
-h3 {
+h3,
+p {
     font-weight: normal;
+    min-height: 1em;
 }
 
 button {
     cursor: pointer;
 }
 
-div > a,
-p > a {
-	color: inherit;
+a {
+    color: inherit;
 }
 
 textarea {
@@ -40,44 +45,45 @@ textarea:focus {
 header,
 main,
 footer {
-	max-width: 840px;
-	width: calc(100% - 2em);
-	margin: 32px auto 64px auto;
+    max-width: 840px;
+    width: calc(100% - 2em);
+    margin: 32px auto 64px auto;
 }
 
 /* HEADER, FOOTER */
 
 header,
 footer {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .left,
 .right {
-	flex-grow: 0;
-	flex-shrink: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 .center {
-	flex-grow: 1;
-	flex-shrink: 1;
-	height: 1px;
-	width: 0;
-	background: #888;
-	margin: 0 1em;
+    flex-grow: 1;
+    flex-shrink: 1;
+    height: 1px;
+    width: 0;
+    background: #888;
+    margin: 0 1em;
 }
 
 /* BLOCK */
 
 .block {
-	margin: 1.5em 0;
-	width: 100%;
-	position: relative;
-	line-height: 1.5em;
+    margin: 1.5em 0;
+    width: 100%;
+    position: relative;
+    line-height: 1.5em;
     border-radius: 2px;
     padding: 0;
+    min-height: 40px;
 }
 
 .block-text:hover {
@@ -87,20 +93,32 @@ footer {
 }
 
 .block-buttons {
-	position: absolute;
-	top: 8px;
-	right: 8px;
-    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    transition: 0.15s;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 16px;
+    background: var(--c-bg);
+    border-radius: 6px;
+    z-index: 10;
 }
 
 .block:hover .block-buttons {
-    display: block;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.block-code {
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .block-code.evaling {
-	opacity: .5;
-	transition: opacity .3s;
-	pointer-events: none;
+    opacity: .5;
+    transition: opacity .3s;
+    pointer-events: none;
 }
 
 .block-code-result {
@@ -111,20 +129,67 @@ footer {
 }
 
 .textarea-code,
-.textarea-text {
+.textarea-text,
+.p-spacer {
     padding: .8em .5em;
-	border: 0;
-	resize: none;
-	box-sizing: border-box;
+    border: 0;
+    resize: none;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .textarea-code,
-.block-code-result {
-	width: 100%;
-	font-family: 'IBM Plex Mono', 'Menlo', monospace;
+.block-code-result,
+.block-code-editor .p-spacer {
+    width: 100%;
+    font-family: var(--font-mono);
+    line-height: 1.5em;
 }
 
 .textarea-text {
-	width: 100%;
+    line-height: 1.5em;
+}
+
+.block-text-editor,
+.block-code-editor {
+    position: relative;
+}
+
+.p-spacer {
+    white-space: pre-wrap;
+    visibility: hidden;
+}
+
+.p-spacer.padded {
+    padding-bottom: 2.3em; /* 1.5em line + .8em padding */
+}
+
+.block-text-editor .textarea-text,
+.block-code-editor .textarea-code {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.block button {
+    border: 0;
+    background: none;
+    font-family: var(--font-mono);
+    margin: 4px;
+}
+
+.block button:hover {
+    background: rgba(0, 0, 0, .05);
+    border-radius: 4px;
+}
+
+.new-block-button {
+    border: 0;
+    background: 0;
+    text-decoration: underline;
+    margin: 0;
+    padding: 0;
 }
 

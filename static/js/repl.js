@@ -71,8 +71,8 @@ class Block extends Component {
 		const buttons = jdom`<div class="block-buttons"
             onclick=${evt => evt.stopPropagation()}>
 			<button onclick=${this.remover}>del</button>
-			<button onclick=${this.addTextBlock}>+ text</button>
-			<button onclick=${this.addCodeBlock}>+ code</button>
+			<button onclick=${this.addTextBlock}>+text</button>
+			<button onclick=${this.addCodeBlock}>+code</button>
 		</div>`;
 
 		if (type == BLOCK.CODE) {
@@ -80,6 +80,7 @@ class Block extends Component {
 				tabIndex=${this.evaling ? -1 : 0}>
 				${buttons}
 				<div class="block-code-editor">
+                    <div class="p-spacer ${text.endsWith('\n') ? 'padded' : ''}">${text}</div>
 					<textarea
 						class="textarea-code"
 						value=${text}
@@ -99,20 +100,21 @@ class Block extends Component {
 		}
 
 		if (this.editing) {
-			return jdom`<textarea
-				class="textarea-text"
-				value=${text}
-				onkeydown=${evt => {
-					if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey)) {
-						this.editing = false;
-						this.record.update({
-							text: evt.target.value.trim(),
-						});
-					} else if (evt.key == 'Escape') {
-						this.editing = false;
-						this.render();
-					}
-				}} />`;
+			return jdom`<div class="block block-text-editor">
+                <div class="p-spacer ${text.endsWith('\n') ? 'padded' : ''}">${text}</div>
+                <textarea
+                    class="textarea-text"
+                    value=${text}
+                    oninput=${evt => this.record.update({
+                        text: evt.target.value,
+                    })}
+                    onkeydown=${evt => {
+                        if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+                            this.editing = false;
+                            this.render();
+                        }
+                    }} />
+            </div>`;
 		}
 
 		return jdom`<div class="block block-text" onclick=${this.startEditing}>
@@ -124,8 +126,15 @@ class Block extends Component {
 
 class Editor extends ListOf(Block) {
 	compose() {
+        const nodes = this.nodes;
 		return jdom`<main class="editor">
-			${this.nodes}
+			${this.nodes.length ? this.nodes : jdom`<button class="new-block-button"
+                onclick=${() => {
+                    this.record.create(null, {
+                        type: BLOCK.TEXT,
+                        text: '# New document',
+                    })
+                }}>+ Start writing</button>`}
 		</main>`;
 	}
 }
@@ -190,11 +199,13 @@ class App extends Component {
 				<div class="center">
 				</div>
 				<div class="right">
-					Built with 
-					<a href="https://github.com/thesephist/klisp">Klisp</a>,
-					<a href="https://dotink.co/">Ink</a>,
-					and
-					<a href="https://github.com/thesephist/torus">Torus</a>
+                    <em>
+                        Built with 
+                        <a href="https://github.com/thesephist/klisp">Klisp</a>,
+                        <a href="https://dotink.co/">Ink</a>,
+                        and
+                        <a href="https://github.com/thesephist/torus">Torus</a>
+                    </em>
 				</div>
 			</footer>
 		</div>`;
