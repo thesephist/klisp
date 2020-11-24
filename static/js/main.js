@@ -456,7 +456,7 @@ class App extends Component {
                         fetch(`/doc/${name}`, {
                             method: 'POST',
                             body: JSON.stringify([
-                                para('# ' + name).serialize(),
+                                para('# ' + name.replace(/-/g, ' ')).serialize(),
                             ]),
                         }).then(resp => {
                             if (resp.status === 409) {

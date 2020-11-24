@@ -136,7 +136,7 @@ Args.2 :: {
 				)
 				'DELETE' -> (
 					dbPath := 'db/' + params.docID
-					delete(dbPath, evt => evt :: {
+					delete(dbPath, evt => evt.type :: {
 						'end' -> end({
 							status: 204
 							body: ''
