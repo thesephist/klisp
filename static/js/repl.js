@@ -129,7 +129,7 @@ class Block extends Component {
 						}} />
 				</div>
 				<div class="block-code-result">
-                    ${this.evaled || '(none)'}
+                    ${this.evaled ? (this.evaled.length > 1000 ? this.evaled.substr(0, 1000) + '...' : this.evaled) : '(none)'}
 				</div>
 			</div>`
 		}
@@ -171,7 +171,7 @@ class Editor extends ListOf(Block) {
                 onclick=${() => {
                     this.record.create(null, {
                         type: BLOCK.TEXT,
-                        text: '# New document',
+                        text: '# New doc',
                     })
                 }}>+ Start writing</button>`}
 		</main>`;
@@ -228,14 +228,10 @@ class App extends Component {
         // a Para (block) has its contents changed. We could listen to events
         // firing off of this.doc, but those only capture shallow events coming
         // from the Store, not the Records inside.
-        document.addEventListener('input', debounce(evt => {
-            if (evt.target.tagName.toLowerCase() !== 'textarea') {
-                return;
-            }
-
+		const persistDoc = debounce(() => {
             if (this.docID) {
                 fetch(`/doc/${this.docID}`, {
-                    method: 'POST',
+                    method: 'PUT',
                     body: JSON.stringify(this.doc.serialize()),
                 }).then(resp => {
                     if (resp.status !== 200) {
@@ -245,9 +241,16 @@ class App extends Component {
                 });
             } else {
                 // TODO: maybe save to localStorage instead?
-                console.info('Not persisting sandbox document.');
+                console.info('Not persisting sandbox doc.');
             }
-        }, 500));
+        }, 500);
+		this.doc.addHandler(persistDoc);
+		document.addEventListener('input', evt => {
+			if (evt.target.tagName.toLowerCase() !== 'textarea') {
+				return;
+			}
+			persistDoc();
+		});
 
 		this.bind(router, async ([name, params]) => {
 			switch (name) {

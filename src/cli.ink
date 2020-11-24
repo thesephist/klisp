@@ -87,6 +87,20 @@ Args.2 :: {
 						})
 					})
 				)
+				'PUT' -> (
+					dbPath := 'db/' + params.docID
+					writeFile(dbPath, req.body, r => r :: {
+						true -> end({
+							status: 200
+							headers: {'Content-Type': 'text/plain'}
+							body: '1'
+						})
+						_ -> end({
+							status: 500
+							body: 'error saving doc'
+						})
+					})
+				)
 				'POST' -> (
 					dbPath := 'db/' + params.docID
 					readFile(dbPath, file => file :: {
