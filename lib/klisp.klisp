@@ -156,6 +156,7 @@
      (fn (xs x)
          (< 0 (index xs x))))
 
+; O(n^2) behavior with linked lists
 (def append
      (fn (xs el)
          (if (nil? xs)
@@ -172,14 +173,11 @@
 
 (def range
      (fn (start end step)
-         (do
-           (def sub
-                (fn (i acc)
-                    (if (< i end)
-                      (sub (+ i step)
-                           (append acc i))
-                      acc)))
-           (sub start (list)))))
+         ; intentionally avoiding then when macro for efficiency
+         (if (< start end)
+           (cons start
+                 (range (+ start step) end step))
+           ())))
 
 (def seq
      (fn (n) (range 0 n 1)))
