@@ -81,10 +81,27 @@ class Block extends Component {
         this.render();
     }
 	startEditing(evt) {
+        // sometimes we click on the block to navigate to a link
+        if (evt.target.tagName.toLowerCase() == 'a') {
+            return;
+        }
+
 		this.editing = true;
 		this.render();
-	}
-	compose() {
+
+        // allow exiting editing mode by clicking elsewhere on the page
+        requestAnimationFrame(() => {
+            const unEdit = evt => {
+                if (!this.node.contains(evt.target)) {
+                    this.editing = false;
+                    this.render();
+                    document.removeEventListener('click', unEdit);
+                }
+            }
+            document.addEventListener('click', unEdit);
+        });
+    }
+    compose() {
 		const {type, text} = this.record.summarize();
 		const buttons = jdom`<div class="block-buttons"
             onclick=${evt => evt.stopPropagation()}>
@@ -127,7 +144,11 @@ class Block extends Component {
                         text: evt.target.value,
                     })}
                     onkeydown=${evt => {
-                        if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+                        if (
+                            evt.key == 'Enter'
+                            && (evt.ctrlKey || evt.metaKey)
+                            || evt.key == 'Escape'
+                        ) {
                             this.editing = false;
                             this.render();
                         }
@@ -203,6 +224,10 @@ class App extends Component {
             }),
 		});
 
+        // This is a bit of a hack, but a good way to catch all events whenever
+        // a Para (block) has its contents changed. We could listen to events
+        // firing off of this.doc, but those only capture shallow events coming
+        // from the Store, not the Records inside.
         document.addEventListener('input', debounce(evt => {
             if (evt.target.tagName.toLowerCase() !== 'textarea') {
                 return;
@@ -212,6 +237,11 @@ class App extends Component {
                 fetch(`/doc/${this.docID}`, {
                     method: 'POST',
                     body: JSON.stringify(this.doc.serialize()),
+                }).then(resp => {
+                    if (resp.status !== 200) {
+                        // TODO: make more aesthetic
+                        alert('sync error');
+                    }
                 });
             } else {
                 // TODO: maybe save to localStorage instead?
@@ -222,14 +252,20 @@ class App extends Component {
 		this.bind(router, async ([name, params]) => {
 			switch (name) {
 				case 'doc': {
+                    this.mode = MODE.DOC;
                     this.docID = params.docID;
 					try {
 						const docResp = await fetch('/doc/' + encodeURIComponent(this.docID));
+                        if (docResp.status !== 200) {
+                            throw new Error('Error loading doc from server');
+                        }
+
 						const docJSON = await docResp.json();
 						this.doc.reset(docJSON.map(blk => new Para(blk)));
 					} catch (e) {
 						alert('Couldn\'t load doc');
 					}
+                    this.render();
 					break;
 				}
 				case 'about': {
@@ -245,8 +281,11 @@ class App extends Component {
 				default: {
 					this.doc.reset([
 						para('# A tour of Nightvale'),
-						para('*Nightvale* is a rich interactive notebook that runs Klisp. You can click on any block of text to edit it as Markdown or modify a program.'),
+						para('*Nightvale* is a rich interactive notebook that runs Klisp (<https://github.com/thesephist/klisp>). You can click on any block of text to edit it as Markdown, or start typing in a code block to write and run a Klisp program.\nFor example, here\'s a simple code block.'),
 						code('(+ 1 2 3 4)'),
+                        para('You can tap the `run` button or hit Control/Cmd+Enter to evaluate the program.\nNightvale code snippets can also include more complex structures and macros -- the entire Klisp standard library is available in Nightvale. When you visualize the result, you can also view alternative formats for the output data like tables and graphs.'),
+                        code('(def one-to-five (list 1 2 3 4 5))\n(def square (fn (n) (* n n)))\n(map one-to-five square)'),
+                        para('In this way, Nightvale can combine data visualizations, literate programs, and prose to communicate interesting ideas interactively.'),
 					]);
 					break;
 				}
@@ -260,29 +299,38 @@ class App extends Component {
 				let name = 'doc-' + Math.random().toString().substr(2);
 				main = jdom`<main>
 					<h1>New doc</h1>
-					<p>Create one here.</p>
-                    <div class="inputRow">
+					<p>Choose a name, like <code>klisp-sandbox</code>, to open a new doc. It'll be available at <code>nightvale/d/your-doc-name</code>.</p>
+                    <form class="inputRow" onsubmit=${async evt => {
+                        evt.preventDefault();
+
+                        fetch(`/doc/${name}`, {
+                            method: 'POST',
+                            body: JSON.stringify([
+                                para('# ' + name).serialize(),
+                            ]),
+                        }).then(resp => {
+                            if (resp.status === 409) {
+                                alert('Error creating doc, there already exists this doc');
+                                return;
+                            } else if (resp.status !== 200) {
+                                alert(`Error creating doc: status ${resp.status}`);
+                                return;
+                            }
+                            router.go(`/d/${name}`);
+                        }).catch(e => {
+                            alert(`Error creating doc: ${e}`);
+                        });
+                    }}>
                         <input
                             type="text"
                             class="paper"
                             placeholder="klisp-sandbox"
+                            required
                             oninput=${evt => {
                                 name = evt.target.value.trim();
                                 evt.target.value = name;
                             }} />
-                        <button class="movable accent paper"
-                            onclick=${async evt => {
-                            fetch(`/doc/${name}`, {
-                                method: 'POST',
-                                body: JSON.stringify([
-                                    para('# ' + name).serialize(),
-                                ]),
-                            }).then(resp => {
-                                router.go(`/d/${name}`);
-                            }).catch(e => {
-                                alert(`Error creating doc: ${e}`);
-                            });
-                        }}>Create</button>
+                        <button class="movable accent paper">Create</form>
                     </div>
 				</main>`;
 				break;
@@ -290,7 +338,17 @@ class App extends Component {
 			case MODE.ABOUT:
 				main = jdom`<main>
 					<h1>About Nightvale</h1>
-					<p>Nightvale is an interactive Klisp notebook.</p>
+					<p>
+                        Nightvale is an interactive literate programming environment that runs
+                        <a href="https://github.com/thesephist/klisp">Klisp</a>, a Scheme-like dialect
+                        of lisp that runs on the <a href="https://dotink.co">Ink programming language</a>.
+                        Nightvale is under active development to become a better environment for thinking
+                        computationally and quantitatively.
+                    </p>
+                    <h2>Inspirations and prior work</h2>
+                    <p>
+                        Interactive, literate programming environments has a rich and illustrious history.
+                    </p>
 				</main>`;
 				break;
 		}

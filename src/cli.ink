@@ -89,15 +89,22 @@ Args.2 :: {
 				)
 				'POST' -> (
 					dbPath := 'db/' + params.docID
-					writeFile(dbPath, req.body, r => r :: {
-						true -> end({
-							status: 200
-							headers: {'Content-Type': 'text/plain'}
-							body: '1'
+					readFile(dbPath, file => file :: {
+						() -> writeFile(dbPath, req.body, r => r :: {
+							true -> end({
+								status: 200
+								headers: {'Content-Type': 'text/plain'}
+								body: '1'
+							})
+							_ -> end({
+								status: 500
+								body: 'error saving doc'
+							})
 						})
 						_ -> end({
-							status: 500
-							body: 'error saving doc'
+							status: 409
+							headers: {'Content-Type': 'text/plain'}
+							body: 'conflict'
 						})
 					})
 				)
@@ -115,7 +122,7 @@ Args.2 :: {
 					})
 				)
 				_ -> end(MethodNotAllowed)
-		    })
+			})
 
 			serveStatic := path => (req, end) => req.method :: {
 				'GET' -> (
