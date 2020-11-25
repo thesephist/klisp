@@ -36,9 +36,8 @@ MaxWebReplSteps := 100000
 withCore := cb => readFile('./lib/klisp.klisp', file => file :: {
 	() -> log('error: could not locate standard library')
 	_ -> (
-		env := clone(Env)
-		eval(read(file), env)
-		cb(env)
+		eval(read(file), Env)
+		cb(Env)
 	)
 	_ -> cb(file)
 })
@@ -65,8 +64,9 @@ Args.2 :: {
 					headers: {'Content-Type': 'text/plain'}
 					body: (
 						stdout := ''
+						localEnv := clone(env)
 						printResp := s => stdout.len(stdout) := s
-						env.symbol('print') := makeFn(L => printResp(reduceL(
+						localEnv.symbol('print') := makeFn(L => printResp(reduceL(
 							L.1, (a, b) => a + ' ' + (type(b) :: {
 								'string' -> b
 								_ -> print(b)
@@ -77,7 +77,7 @@ Args.2 :: {
 							}
 						)))
 
-						out := print(safeEval(read(req.body), env, MaxWebReplSteps))
+						out := print(safeEval(read(req.body), localEnv, MaxWebReplSteps))
 						log(f('(eval {{0}}) => {{1}}', [req.body, out]))
 						stdout + out
 					)

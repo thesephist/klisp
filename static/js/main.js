@@ -486,11 +486,12 @@ class App extends Component {
                 default: {
                     this.doc.reset([
                         para('# A tour of Nightvale'),
-                        para('*Nightvale* is a rich interactive notebook that runs Klisp (<https://github.com/thesephist/klisp>). You can click on any block of text to edit it as Markdown, or start typing in a code block to write and run a Klisp program.\nFor example, here\'s a simple code block.'),
+                        para('*Nightvale* is an interactive notebook that runs Klisp (<https://github.com/thesephist/klisp>). You can click on any block of text to edit it like Markdown, or start typing in a code block to write and run a Klisp program. You\'re currently on the _sandbox_ page, which means your changes here won\'t be saved.\nFor example, here\'s a simple program to add some numbers. You can tap the `Run` button or type Control/Cmd + Enter in the code editor to run the program.'),
                         code('(+ 1 2 3 4)'),
-                        para('You can tap the `run` button or hit Control/Cmd+Enter to evaluate the program.\nNightvale code snippets can also include more complex structures and macros -- the entire Klisp standard library is available in Nightvale. When you visualize the result, you can also view alternative formats for the output data like tables and graphs.'),
-                        code('(def one-to-five (list 1 2 3 4 5))\n(def square (fn (n) (* n n)))\n(map one-to-five square)'),
-                        para('In this way, Nightvale can combine data visualizations, literate programs, and prose to communicate interesting ideas interactively.'),
+                        para('Nightvale code snippets can also include more complex structures and macros -- the entire Klisp standard library is available in Nightvale. In this next program, we find first ten perfect squares.'),
+                        code('(def one-to-ten (map (seq 10) inc))\n(println one-to-ten)\n(def square\n     (fn (n) (* n n)))\n(map one-to-ten square)'),
+                        para('Lastly, Nightvale also comes with out-of-the-box support for mathematical notation using KaTeX. To display math, simply wrap them in `$$` and write (backslash-escaped) LaTeX. For example, the Riemann sum $S$ is\n$$S = \\\\sum^{n}\\_{i = 1} f\\\\left(x\\_i\\\\right) \\\\Delta x\\_i$$'),
+                        para('Using all these tools together with rich text formatting, Nightvale can combine data, literate programs, notation, and prose to communicate interesting ideas interactively.'),
                     ]);
                     break;
                 }
