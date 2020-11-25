@@ -6,7 +6,7 @@ body {
 	--paper-accent: #222;
 
     background: var(--c-bg);
-    font-size: 20px;
+    font-size: 18px;
 	margin: 0;
 }
 
@@ -178,6 +178,7 @@ footer .right {
 .block-code-result {
     padding: .8em .5em;
     background: #f0f0f0;
+    white-space: pre-wrap;
     word-wrap: break-all;
     box-sizing: border-box;
 }

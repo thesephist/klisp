@@ -265,7 +265,7 @@ class Block extends Component {
         });
         return jdom`<div class="block block-text" onclick=${this.startEditing}>
             ${buttons}
-            ${Markus(text.trim())}
+            ${Markus(text.trim().split('\n').filter(s => s.trim()).join('\n'))}
         </div>`
     }
 }
@@ -450,6 +450,14 @@ class App extends Component {
                         Interactive, literate programming environments has a rich and illustrious history.
                         Nightvale is a small step from me towards big ideas presented in the following
                         research projects, interesting ideas, and past products.
+                    </p>
+                    <ul>
+                        <li>Light Table and Eve</li>
+                        <li>The Clojure REBL</li>
+                    </ul>
+                    <h2>How it works</h2>
+                    <p>
+                        This...
                     </p>
                 </main>`;
                 break;
