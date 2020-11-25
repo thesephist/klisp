@@ -1,19 +1,20 @@
 [Unit]
 Description=nightvale notebook server (klisp)
-ConditionPathExists=/home/nightvale/go/bin/ink
+ConditionPathExists=/home/nightvale-user/go/bin/ink
 After=network.target
 
 [Service]
 Type=simple
-User=nightvale
+User=nightvale-user
 LimitNOFILE=1024
+PermissionsStartOnly=true
 
 Restart=on-failure
 RestartSec=100ms
 StartLimitIntervalSec=60
 
-WorkingDirectory=/home/nightvale/klisp
-ExecStart=/home/nightvale/go/bin/ink ./src/cli.ink --port 7900
+WorkingDirectory=/home/nightvale-user/klisp
+ExecStart=/home/nightvale-user/go/bin/ink ./src/cli.ink --port 7900
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
