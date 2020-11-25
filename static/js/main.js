@@ -231,6 +231,7 @@ class Block extends Component {
         if (type == BLOCK.CODE) {
             return jdom`<div class="block block-code wrap paper ${this.evaling ? 'evaling' : ''}"
                 tabIndex=${this.evaling ? -1 : 0}>
+                <button class="runButton movable paper" onclick=${() => this.eval()}>Run</button>
                 ${buttons}
                 <div class="block-code-editor">
                     <div class="p-spacer ${text.endsWith('\n') || !text ? 'padded' : ''}">${text}</div>

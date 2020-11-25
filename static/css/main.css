@@ -193,6 +193,15 @@ footer .right {
     pointer-events: all;
 }
 
+.runButton.paper {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: #fff;
+    border-radius: 6px;
+    font-size: .8em;
+}
+
 .block-code {
     border-radius: 6px;
     overflow: hidden;
@@ -256,14 +265,14 @@ footer .right {
     bottom: 0;
 }
 
-.block button {
+.block-buttons button {
     border: 0;
     background: #eee;
     font-family: var(--font-mono);
     margin: 4px;
 }
 
-.block button:hover {
+.block-buttons button:hover {
     background: #ddd;
     border-radius: 4px;
 }
