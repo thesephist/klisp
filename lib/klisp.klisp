@@ -146,10 +146,11 @@
 (def index
      (fn (xs x)
          (do
-           (def index-from (fn (xs x rest)
-                               (if (= (car xs) x)
-                                 rest
-                                 (index-from (cdr xs) x (inc rest)))))
+           (def index-from
+                (fn (xs x rest)
+                    (if (= (car xs) x)
+                      rest
+                      (index-from (cdr xs) x (inc rest)))))
            (index-from xs x 0))))
 
 (def contains?
@@ -166,10 +167,12 @@
 
 (def join
      (fn (xs ys)
-         (if (nil? ys)
-           xs
-           (join (append xs (car ys))
-                 (cdr ys)))))
+         (if (nil? xs)
+           ys
+           (cons (car xs)
+                 (if (nil? (cdr xs))
+                   ys
+                   (join (cdr xs) ys))))))
 
 (def range
      (fn (start end step)
