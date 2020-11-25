@@ -11,6 +11,10 @@ run:
 repl:
 	rlwrap ink ./src/cli.ink
 
+# run nightvale server on an auto-restart loop
+serve:
+	until ink ./src/cli.ink --port 7900; do echo 'Re-starting Nightvale...'; done
+
 # run all tests under test/
 check: run
 	ink ./src/tests.ink
