@@ -8,12 +8,12 @@ Type=simple
 User=nightvale
 LimitNOFILE=1024
 
-Restart=always
-RestartSec=5
+Restart=on-failure
+RestartSec=100ms
 StartLimitIntervalSec=60
 
 WorkingDirectory=/home/nightvale/klisp
-ExecStart=until /home/nightvale/go/bin/ink ./src/cli.ink --port 7900; do echo 'Re-starting Nightvale...'; done
+ExecStart=/home/nightvale/go/bin/ink ./src/cli.ink --port 7900
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
