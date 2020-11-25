@@ -324,7 +324,15 @@ class DocList extends Component {
         this.docNames = [];
 
         fetch('/doc/')
-            .then(resp => resp.text())
+            .then(resp => {
+                if (resp.status === 401) {
+                    // permission error
+                    message('Error getting docs: insufficient permissions');
+                    return Promise.resolve('');
+                } else {
+                    return resp.text();
+                }
+            })
             .then(docNames => {
                 this.docNames = docNames.split('\n').filter(s => !!s).sort();
                 this.render();
@@ -403,10 +411,12 @@ class App extends Component {
                     method: 'PUT',
                     body: JSON.stringify(this.doc.serialize()),
                 }).then(resp => {
-                    if (resp.status == 404) {
+                    if (resp.status === 401) {
+                        message('Error saving doc: insufficient permissions')
+                    } else if (resp.status == 404) {
                         // a 404 error is handled elsewhere on load
                     } else if (resp.status !== 200) {
-                        message('sync error');
+                        message('Error saving doc');
                     }
 
                     setTimeout(() => {
@@ -438,7 +448,9 @@ class App extends Component {
                     this.docID = params.docID;
                     try {
                         const docResp = await fetch('/doc/' + encodeURIComponent(this.docID));
-                        if (docResp.status !== 200) {
+                        if (docResp.status === 401) {
+                            message('Error loading doc: insufficient permissions')
+                        } else if (docResp.status !== 200) {
                             throw new Error('Error loading doc from server');
                         }
 
