@@ -4,6 +4,7 @@ const {
     Component,
     ListOf,
     Router,
+    render,
 } = window.Torus;
 
 const BLOCK = {
@@ -26,6 +27,38 @@ const debounce = (fn, delayMillis) => {
         }
         to = setTimeout(dfn, delayMillis);
     }
+}
+
+function message(msg) {
+    function close() {
+        document.body.removeChild(node);
+    }
+
+    const node = render(null, null, jdom`<div class="message paper paper-border-top">
+        ${msg}
+        <div class="message-buttons">
+            <button class="movable accent paper" onclick=${close}>Ok</button>
+        </div>
+    </div>`);
+    document.body.appendChild(node);
+}
+
+function confirm(msg, ifOk) {
+    function close() {
+        document.body.removeChild(node);
+    }
+
+    const node = render(null, null, jdom`<div class="message paper paper-border-top">
+        ${msg}
+        <div class="message-buttons">
+            <button class="movable paper" onclick=${close}>No</button>
+            <button class="movable accent paper" onclick=${() => {
+                close();
+                ifOk();
+            }}>Yes</button>
+        </div>
+    </div>`);
+    document.body.appendChild(node);
 }
 
 class Para extends Record {
@@ -295,7 +328,7 @@ class DocList extends Component {
                 this.docNames = docNames.split('\n').filter(s => !!s).sort();
                 this.render();
             })
-            .catch(e => alert('Error getting doc list:', e));
+            .catch(e => message(`Error getting doc list: ${e}`));
     }
     compose() {
         return jdom`<ul class="doc-list">
@@ -365,13 +398,13 @@ class App extends Component {
                     method: 'PUT',
                     body: JSON.stringify(this.doc.serialize()),
                 }).then(resp => {
-                    if (resp.status !== 200) {
-                        // TODO: make more aesthetic
-                        alert('sync error');
+                    if (resp.status == 404) {
+                        // a 404 error is handled elsewhere on load
+                    } else if (resp.status !== 200) {
+                        message('sync error');
                     }
                 });
             } else {
-                // TODO: maybe save to localStorage instead?
                 console.info('Not persisting sandbox doc.');
             }
         }, 500);
@@ -397,7 +430,7 @@ class App extends Component {
                         const docJSON = await docResp.json();
                         this.doc.reset(docJSON.map(blk => new Para(blk)));
                     } catch (e) {
-                        alert('Couldn\'t load doc');
+                        message('Couldn\'t load doc');
                     }
                     this.render();
                     break;
@@ -482,15 +515,15 @@ class App extends Component {
                             ]),
                         }).then(resp => {
                             if (resp.status === 409) {
-                                alert('Error creating doc, there already exists this doc');
+                                message('Error creating doc: there already exists a doc with this name.');
                                 return;
                             } else if (resp.status !== 200) {
-                                alert(`Error creating doc: status ${resp.status}`);
+                                message(`Error creating doc: status ${resp.status}`);
                                 return;
                             }
                             router.go(`/d/${name}`);
                         }).catch(e => {
-                            alert(`Error creating doc: ${e}`);
+                            message(`Error creating doc: ${e}`);
                         });
                     }}>
                         <input
@@ -529,21 +562,20 @@ class App extends Component {
                     <a class="desktop" href="https://github.com/thesephist/klisp" target="_blank">github</a>
                     ${this.docID ? jdom`<a href="#" onclick=${evt => {
                         evt.preventDefault();
-                        if (!confirm(`Delete the doc ${this.docID} forever?`)) {
-                            return;
-                        }
 
-                        fetch(`/doc/${this.docID}`, {
-                            method: 'DELETE',
-                        }).then(resp => {
-                            if (resp.status !== 204) {
-                                alert('error:could not delete');
-                                return;
-                            }
+                        confirm(`Delete the doc ${this.docID} forever?`, () => {
+                            fetch(`/doc/${this.docID}`, {
+                                method: 'DELETE',
+                            }).then(resp => {
+                                if (resp.status !== 204) {
+                                    message('error:could not delete');
+                                    return;
+                                }
 
-                            router.go('/list');
-                        }).catch(e => {
-                            alert(`error: could not delete, ${e}`);
+                                router.go('/list');
+                            }).catch(e => {
+                                message(`error: could not delete, ${e}`);
+                            });
                         });
                     }}>del</a>` : null}
                     <a href="/new" onclick=${evt => {
