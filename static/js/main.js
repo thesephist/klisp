@@ -371,6 +371,7 @@ class App extends Component {
     init(router) {
         this.docID = null;
         this.mode = MODE.DOC;
+        this.syncing = false;
 
         this.doc = new Doc([
             para('_Loading..._'),
@@ -394,6 +395,9 @@ class App extends Component {
         // from the Store, not the Records inside.
         const persistDoc = debounce(() => {
             if (this.docID) {
+                this.syncing = true;
+                this.render();
+
                 fetch(`/doc/${this.docID}`, {
                     method: 'PUT',
                     body: JSON.stringify(this.doc.serialize()),
@@ -403,6 +407,16 @@ class App extends Component {
                     } else if (resp.status !== 200) {
                         message('sync error');
                     }
+
+                    setTimeout(() => {
+                        this.syncing = false;
+                        this.render();
+                    }, 500);
+                }).catch(e => {
+                    setTimeout(() => {
+                        this.syncing = false;
+                        this.render();
+                    }, 500);
                 });
             } else {
                 console.info('Not persisting sandbox doc.');
@@ -543,6 +557,7 @@ class App extends Component {
         }
 
         return jdom`<div class="app">
+            ${this.syncing ? jdom`<div class="syncing" />` : null}
             <header>
                 <div class="left">
                     <a href="/">Nightvale</a>

@@ -70,6 +70,7 @@ footer {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    position: relative;
 }
 
 .left,
@@ -130,6 +131,33 @@ nav a:first-child {
 
 footer .right {
     font-style: italic;
+}
+
+@keyframes syncing-slide {
+    0% {
+        transform: scaleX(1) translateX(-100%);
+    }
+    50% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: scaleX(1) translateX(100%);
+    }
+}
+
+.syncing {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: block;
+    background: var(--paper-accent);
+    height: 2px;
+    z-index: 10;
+
+    animation: syncing-slide linear 1s infinite;
+    animation-direction: alternate;
 }
 
 /* BLOCK */
