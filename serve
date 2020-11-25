@@ -1,0 +1,2 @@
+#!/bin/sh
+until ink ./src/cli.ink --port 7900; do echo 'Re-starting Nightvale...'; done
