@@ -216,7 +216,7 @@ footer .right {
     padding: .8em .5em;
     background: #f0f0f0;
     white-space: pre-wrap;
-    word-wrap: break-all;
+    overflow-wrap: break-word;
     box-sizing: border-box;
 }
 
@@ -263,6 +263,7 @@ footer .right {
     left: 0;
     right: 0;
     bottom: 0;
+    height: 100%;
 }
 
 .block-buttons button {
@@ -301,6 +302,7 @@ footer .right {
     min-width: 0;
     flex-grow: 0;
     flex-shrink: 1;
+    -webkit-appearance: none;
 }
 
 .inputRow button {

@@ -84,7 +84,13 @@ function remoteEval(expr) {
     return fetch('/eval', {
         method: 'POST',
         body: expr,
-    }).then(resp => resp.text());
+    }).then(resp => {
+        if (resp.status === 200) {
+            return resp.text();
+        } else {
+            return Promise.resolve('eval-error');
+        }
+    });
 }
 
 // Borrowed from thesephist/sandbox, an event handler that does some light
@@ -388,12 +394,12 @@ class App extends Component {
         this.editor = new Editor(this.doc, {
             addTextBlock: childIndexes => this.doc.create(null, {
                 type: BLOCK.TEXT,
-                text: 'Say something...',
+                text: 'Click to edit...',
                 ...childIndexes,
             }),
             addCodeBlock: childIndexes => this.doc.create(null, {
                 type: BLOCK.CODE,
-                text: '(+ 1 1)',
+                text: '(+ 1 2 3)',
                 ...childIndexes,
             }),
         });
@@ -503,22 +509,46 @@ class App extends Component {
                         Scheme-like dialect of lisp that runs on the <a href="https://dotink.co"
                         target="_blank">Ink programming language</a>.  Nightvale is under active
                         development to become a better environment for thinking computationally
-                        and quantitatively.
+                        and quantitatively, and communicating these ideas in a beautiful and interactive
+                        format.
+                    </p>
+                    <p>
+                        The name <em>Nightvale</em> comes from the podcast <em>Welcome to Night Vale</em>,
+                        but besides the fact that it sounds good to my ears, there is no relationship.
+                    </p>
+                    <h2>How it works</h2>
+                    <p>
+                        Nightvale uses a client-server design to enable interactive, programmable documents,
+                        where you can embed Klisp programs in-line into a Nightvale doc. The server, written
+                        in Ink, incorporates a limited variant of the Klisp interpreter with a capped maximum
+                        evaluation limit (to prevent infinite loops). When a document loads in Nightvale, any
+                        embedded programs are sent to the evaluation service in the backend to retrieve results,
+                        which is displayed in the document. At the moment, the server keeps no state in
+                        between evaluations, so each code block must be a standalone program.
+                    </p>
+                    <p>
+                        The client side rendering logic and application is written predominantly in
+                        <a href="https://github.com/thesephist/torus" target="_blank">Torus</a>, a UI rendering
+                        library I wrote. <a href="https://markuswriter.surge.sh/" target="_blank">Markus</a>,
+                        a Markdown-like text rendering library designed for Torus, is used to render prose, and
+                        <a href="https://katex.org/" target="_blank">KaTeX</a> renders any math notation on the page.
                     </p>
                     <h2>Inspirations and prior work</h2>
                     <p>
-                        Interactive, literate programming environments has a rich and illustrious history.
-                        Nightvale is a small step from me towards big ideas presented in the following
-                        research projects, interesting ideas, and past products.
+                        The pursuit to create an interactive, literate programming environment has a rich
+                        and illustrious history. Nightvale is a small step from me towards big ideas presented
+                        in the following research projects, conceptual explorations, and past products.
                     </p>
                     <ul>
-                        <li>Light Table and Eve</li>
-                        <li>The Clojure REBL</li>
+                        <li><a href="https://observablehq.com/" target="_blank">Observable notebook</a></li>
+                        <li><a href="https://en.wikipedia.org/wiki/Light_Table_(software)" target="_blank">Light Table</a>
+                            and <a href="http://witheve.com/" target="_blank">Eve</a></li>
+                        <li><a href="https://jupyter.org/" target="_blank">Jupyter notebook</a></li>
+                        <li>The Julia shell</li>
+                        <li>The Clojure repl</li>
+                        <li>Knuth's <a href="https://en.wikipedia.org/wiki/Literate_programming" target="_blank">Literate Programming</a></li>
                     </ul>
-                    <h2>How it works</h2>
-                    <p>
-                        This...
-                    </p>
+                    <p>- Linus, <em><a href="https://thesephist.com" target="_blank">@thesephist</a></em>.</p>
                 </main>`;
                 break;
             case MODE.LIST:
