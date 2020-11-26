@@ -33,7 +33,7 @@
 (def function?
      (fn (x) (= (type x) 'function')))
 (def list?
-     (fn (x) (= (type x) 'composite')))
+     (fn (x) (= (type x) 'list')))
 (def pair?
      (fn (x)
          (if (list? x)

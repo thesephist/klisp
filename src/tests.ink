@@ -57,6 +57,16 @@ SyntaxTests := [
 			Newline + '; (e f g)' + Newline + 'c)'
 		[symbol('a'), [symbol('b'), [symbol('c'), ()]]]
 	]
+	[
+		'Lack of trailing parentheses'
+		'(+ 1 (* 2 3)'
+		[symbol('+'), [1, [[symbol('*'), [2, [3, ()]]], ()]]]
+	]
+	[
+		'Too many trailing parentheses'
+		'(+ 1 (* 2 3))))'
+		[symbol('+'), [1, [[symbol('*'), [2, [3, ()]]], ()]]]
+	]
 ]
 
 ` used for eval tests `
@@ -80,6 +90,8 @@ EvalTests := [
 			 (* 4 5 6))', 120]
 	['anonymous fns'
 		'((fn () \'result\') 100)', 'result']
+	['fn form returns a function'
+		'(type (fn (x) (- 0 x)))', 'function']
 	['anonymous fns with argument'
 		'((fn (x) (+ 1 x)) 2)', 3]
 	['anonymous fns with arguments'
@@ -193,6 +205,11 @@ EvalTests := [
 				  (/ (sum xs) (size xs))))'
 		'(avg (quote (100 200 300 500)))'
 	], 275]
+	[
+		'builtin fn type'
+		'(+ (type 0) (type \'hi\') (type true) (type type) (type ()) (type ,(0)))'
+		'numberstringbooleanfunction()list'
+	]
 	['builtin len on string'
 		'(len \'hello\')', 5]
 	['builtin len on symbol'

@@ -96,6 +96,7 @@ read := s => (
 
 	parse := () => c := peek() :: {
 		() -> () ` EOF `
+		')' -> () ` halt parsing `
 		',' -> (
 			next()
 			ff()
@@ -152,9 +153,11 @@ read := s => (
 	prog := [Do, term]
 	(sub := tail => peek() :: {
 		() -> prog
+		')' -> prog
 		_ -> (
 			term := [parse(), ()]
 			tail.1 := term
+			ff()
 			sub(term)
 		)
 	})(term)
@@ -337,7 +340,11 @@ Env := {
 	symbol('^'): makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
 
 	` types and conversions `
-	symbol('type'): makeFn(L => type(L.0))
+	symbol('type'): makeFn(L => L.0 :: {
+		[_, _, _] -> 'function'
+		[_, _] -> 'list'
+		_ -> type(L.0)
+	})
 	symbol('string->number'): makeFn(L => (
 		operand := L.0
 		type(operand) :: {
