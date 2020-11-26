@@ -18,16 +18,45 @@
 (println (reduce (cdr x-list) * 1))
 
 ; index operations
+
+(defn five-multiple? (x)
+      (and (zero? (% x 5))
+           (> x 0)))
+
 (do
-  (def fifteen (nth x-list 5))
+  (def eighteen (nth x-list 6))
+  (def fifteen
+       (find x-list five-multiple?))
   (def ten
-       (when (matches-at? x-list 24 8) 10))
+       (when (nth? x-list 8 24) 10))
   (def six (index x-list 18))
   (def three
        (when (contains? x-list 27) 33))
-  (def total (sum (list fifteen ten six three)))
-  (println 'total = 64:' total))
+  (def total
+       (sum (list fifteen eighteen ten six three)))
+  (println 'total = 82:' total))
 
 ; for-each
 (each x-list println)
+
+; min/max/some/every
+(defn even? (x)
+      (zero? (% x 2)))
+
+(do
+  (println
+    'Some even?'
+    (some? (map x-list even?)))
+  (println
+    'Every even?'
+    (every? (map x-list even?)))
+  (println
+    'Every mul of 3?'
+    (every? (map x-list
+                 (fn (x) (zero? (% x 3))))))
+  (println
+    'Min'
+    (min x-list) ','
+    'Max'
+    (max x-list)))
 

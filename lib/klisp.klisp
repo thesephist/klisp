@@ -174,11 +174,11 @@
            (car xs)
            (nth (cdr xs) (dec i)))))
 
-(def matches-at?
-     (fn (xs x i)
+(def nth?
+     (fn (xs i x)
          (if (zero? i)
            (= (car xs) x)
-           (matches-at? (cdr xs) x (dec i)))))
+           (nth? (cdr xs) (dec i) x))))
 
 (def index
      (fn (xs x)
@@ -189,6 +189,48 @@
                       rest
                       (index-from (cdr xs) x (inc rest)))))
            (index-from xs x 0))))
+
+(def find
+     (fn (xs f?)
+         (if (nil? xs)
+           ()
+           (if (f? (car xs))
+             (car xs)
+             (find (cdr xs) f?)))))
+
+(def some?
+     (fn (xs)
+         (if (nil? xs)
+           false
+           (if (car xs)
+             true
+             (some? (cdr xs))))))
+
+(def every?
+     (fn (xs)
+         (if (nil? xs)
+           true
+           (if (car xs)
+             (every? (cdr xs))
+             false))))
+
+(def min
+     (fn (xs)
+         (if (nil? xs)
+           ()
+           (reduce xs
+                   (fn (a b)
+                       (if (< a b) a b))
+                   (car xs)))))
+
+(def max
+     (fn (xs)
+         (if (nil? xs)
+           ()
+           (reduce xs
+                   (fn (a b)
+                       (if (< a b) b a))
+                   (car xs)))))
 
 (def contains?
      (fn (xs x)
