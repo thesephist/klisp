@@ -1,4 +1,4 @@
-all: run
+all: ci
 
 # run main binary
 run:
@@ -36,4 +36,13 @@ install:
 	sudo echo '#!/bin/sh' > /usr/local/bin/klisp
 	sudo echo rlwrap `pwd`/src/cli.ink '$$*' >> /usr/local/bin/klisp
 	sudo chmod +x /usr/local/bin/klisp
+
+# run by CI, uses vendored Ink binary
+ci:
+	./util/ink-linux ./src/cli.ink test/000.klisp
+	./util/ink-linux ./src/cli.ink test/001.klisp
+	./util/ink-linux ./src/cli.ink test/002.klisp
+	./util/ink-linux ./src/cli.ink test/003.klisp
+	./util/ink-linux ./src/cli.ink test/004.klisp
+	./util/ink-linux ./src/tests.ink
 

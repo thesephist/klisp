@@ -1,5 +1,7 @@
 # Klisp 🐍
 
+[![Build Status](https://travis-ci.com/thesephist/klisp.svg?branch=master)](https://travis-ci.com/thesephist/klisp)
+
 **Klisp** is a very minimal **LISP** written in about 200 lines of [In**K**](https://dotink.co). It's primarily a pedagogical project -- I made it to understand Lisp better. (That's another way of saying: don't use it for serious things.) Ink's semantics are already quite lispy, so Klisp builds on Ink's semantics and adds an S-expression grammar and a repl, a true read-eval-print loop.
 
 ![Examples in a Klisp repl](docs/term.png)
