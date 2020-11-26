@@ -33,10 +33,13 @@ syntax keyword klispKeyword macro contained
 syntax keyword klispKeyword car contained
 syntax keyword klispKeyword cdr contained
 syntax keyword klispKeyword cons contained
-" core library forms
+" core library and control flow forms
+syntax keyword klispKeyword let contained
 syntax keyword klispKeyword when contained
 syntax keyword klispKeyword unless contained
-syntax keyword klispKeyword let contained
+syntax keyword klispKeyword defn contained
+syntax keyword klispKeyword cond contained
+syntax keyword klispKeyword match contained
 syntax keyword klispKeyword list contained
 highlight link klispKeyword Keyword
 

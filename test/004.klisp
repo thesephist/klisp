@@ -1,0 +1,37 @@
+; FizzBuzz
+
+(defn divisible? (n c)
+      (zero? (% n c)))
+
+; using the cond macro
+(defn fizzbuzz-cond (n)
+      (each (nat n)
+            (fn (i)
+                (cond
+                  ((divisible? i 15)
+                   (println 'FizzBuzz'))
+                  ((divisible? i 3)
+                   (println 'Fizz'))
+                  ((divisible? i 5)
+                   (println 'Buzz'))
+                  (true (println i))))))
+
+; using the match macro
+(defn fizzbuzz-match (n)
+      (each (nat n)
+            (fn (i)
+                (match
+                  (list (divisible? i 3)
+                        (divisible? i 5))
+                  ((list true true)
+                   (println 'FizzBuzz'))
+                  ((list true false)
+                   (println 'Fizz'))
+                  ((list false true)
+                   (println 'Buzz'))
+                  ((list false false)
+                   (println i))))))
+
+(fizzbuzz-cond 20)
+(fizzbuzz-match 20)
+

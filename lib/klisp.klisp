@@ -130,6 +130,43 @@
             (cons ,do
                   (times (car terms) (list (cadr terms))))))
 
+; shorthand for defining functions in scope
+(def defn
+     (macro (terms)
+            (quasiquote
+              (def (unquote (car terms))
+                   (fn (unquote (cadr terms))
+                       (unquote (car (cddr terms))))))))
+
+; (cond (pred body) (pred body))
+(def cond
+     (macro (terms)
+            ((def -cond
+                  (fn (terms)
+                      (if (nil? terms)
+                        ()
+                        (quasiquote
+                          (if (unquote (car (car terms)))
+                            (unquote (cadr (car terms)))
+                            (unquote (-cond (cdr terms))))))))
+             terms)))
+
+; (match val (tag body) (tag body))
+(def match
+     (macro (terms)
+            (do
+              (def -match
+                   (fn (terms)
+                       (if (nil? terms)
+                         ()
+                         (quasiquote
+                           (if (= -match-val (unquote (car (car terms))))
+                             (unquote (cadr (car terms)))
+                             (unquote (-match (cdr terms))))))))
+              (quasiquote
+                (let (-match-val (unquote (car terms)))
+                  (unquote (-match (cdr terms))))))))
+
 ; list methods
 (def nth
      (fn (xs i)
@@ -184,6 +221,9 @@
 
 (def seq
      (fn (n) (range 0 n 1)))
+
+(def nat
+     (fn (n) (range 1 (inc n) 1)))
 
 (def map
      (fn (xs f)
