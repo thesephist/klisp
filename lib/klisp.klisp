@@ -130,6 +130,21 @@
             (cons ,do
                   (times (car terms) (list (cadr terms))))))
 
+; (while condition . body)
+(def while
+     (macro (terms)
+            (do
+              (def cndn (car terms))
+              (def body (cdr terms))
+              (quasiquote
+                ((def -while-f
+                      (fn ()
+                          (if (unquote cndn)
+                            (do
+                              (unquote (cons ,do body))
+                              (-while-f))
+                            ()))))))))
+
 ; shorthand for defining functions in scope
 (def defn
      (macro (terms)
@@ -313,10 +328,12 @@
 ; utilities
 (def println
      (macro (terms)
-            (quasiquote
-              (do
-                (unquote (cons ,print terms))
-                (print (char 10))))))
+            ; we expand the macro manually here
+            ; because println should be as fast as possible
+            (cons ,do
+                  (cons (cons ,print terms)
+                        (cons ,(print (char 10))
+                              ())))))
 
 (def comment
      ; add "(comment val)" to an expr head
