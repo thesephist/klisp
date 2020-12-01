@@ -216,24 +216,24 @@ EvalTests := [
 		'(len ,hello)', 5]
 	['builtin len on invalid value'
 		'(len 3)', 0]
-	['get-slice in bounds'
-		'(get-slice \'hello world\' 4 8)', 'o wo']
-	['get-slice partial out of bounds'
-		'(get-slice \'hello world\' 4 100)', 'o world']
-	['get-slice completely out of bounds'
-		'(get-slice \'hello world\' 50 100)', '']
-	['set-slice!', [
+	['gets in bounds'
+		'(gets \'hello world\' 4 8)', 'o wo']
+	['gets partial out of bounds'
+		'(gets \'hello world\' 4 100)', 'o world']
+	['gets completely out of bounds'
+		'(gets \'hello world\' 50 100)', '']
+	['sets!', [
 		'(def s \'hello world\')'
-		'(set-slice! s 6 \'klisp\')'
+		'(sets! s 6 \'klisp\')'
 		's'
 	], 'hello klisp']
-	['set-slice! returns mutated string', [
+	['sets! returns mutated string', [
 		'(def s \'hello world\')'
-		'(set-slice! s 6 \'klisp\')'
+		'(sets! s 6 \'klisp\')'
 	], 'hello klisp']
-	['set-slice! does not grow underlying string', [
+	['sets! does not grow underlying string', [
 		'(def s \'hello world\')'
-		'(set-slice! s 6 \'klispers everywhere\')'
+		'(sets! s 6 \'klispers everywhere\')'
 		's'
 	], 'hello klisp']
 	['builtin char'
