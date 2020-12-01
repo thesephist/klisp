@@ -311,7 +311,8 @@ Env := {
 	symbol('sets!'): makeFn(L => type(L.0) :: {
 		'string' -> (
 			s := L.0
-			s.(L.'1'.0) := L.'1'.'1'.0
+			idx := L.'1'.0
+			s.(idx) := slice(L.'1'.'1'.0, 0, len(s) - idx)
 		)
 		_ -> ''
 	})
