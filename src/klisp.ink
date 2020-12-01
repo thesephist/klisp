@@ -344,7 +344,13 @@ Env := {
 	symbol('type'): makeFn(L => L.0 :: {
 		[_, _, _] -> 'function'
 		[_, _] -> 'list'
-		_ -> type(L.0)
+		_ -> ty := type(L.0) :: {
+			'string' -> symbol?(L.0) :: {
+				true -> 'symbol'
+				_ -> ty
+			}
+			_ -> ty
+		}
 	})
 	symbol('string->number'): makeFn(L => (
 		operand := L.0

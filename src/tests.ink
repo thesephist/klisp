@@ -207,8 +207,8 @@ EvalTests := [
 	], 275]
 	[
 		'builtin fn type'
-		'(+ (type 0) (type \'hi\') (type true) (type type) (type ()) (type ,(0)))'
-		'numberstringbooleanfunction()list'
+		'(+ (type 0) (type \'hi\') (type ,hi) (type true) (type type) (type ()) (type ,(0)))'
+		'numberstringsymbolbooleanfunction()list'
 	]
 	['builtin len on string'
 		'(len \'hello\')', 5]
