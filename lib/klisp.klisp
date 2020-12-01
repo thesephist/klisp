@@ -30,6 +30,8 @@
      (fn (x) (= (type x) 'boolean')))
 (def string?
      (fn (x) (= (type x) 'string')))
+(def symbol?
+     (fn (x) (= (type x) 'symbol')))
 (def function?
      (fn (x) (= (type x) 'function')))
 (def list?
@@ -61,6 +63,10 @@
            1)))
 (def sqrt
      (fn (n) (# n 0.5)))
+(def even?
+     (fn (n) (zero? (% n 2))))
+(def odd?
+     (fn (n) (! (even? n))))
 (def !=
      (fn (a b) (! (= a b))))
 (def >=
@@ -182,6 +188,39 @@
                 (let (-match-val (unquote (car terms)))
                   (unquote (-match (cdr terms))))))))
 
+; thread-first
+(def ->
+     (macro (terms)
+            (do
+              (def apply-partials
+                   (fn (partials expr)
+                       (if (nil? partials)
+                         expr
+                         (if (symbol? (car partials))
+                           (list (car partials)
+                                 (apply-partials (cdr partials) expr))
+                           (cons (caar partials)
+                                 (cons (apply-partials (cdr partials) expr)
+                                       (cdar partials)))))))
+              (apply-partials (reverse (cdr terms))
+                              (car terms)))))
+
+; thread-last
+(def ->>
+     (macro (terms)
+            (do
+              (def apply-partials
+                   (fn (partials expr)
+                       (if (nil? partials)
+                         expr
+                         (if (symbol? (car partials))
+                           (list (car partials)
+                                 (apply-partials (cdr partials) expr))
+                           (append (car partials)
+                                   (apply-partials (cdr partials) expr))))))
+              (apply-partials (reverse (cdr terms))
+                              (car terms)))))
+
 ; list methods
 (def nth
      (fn (xs i)
@@ -281,6 +320,13 @@
 
 (def nat
      (fn (n) (range 1 (inc n) 1)))
+
+(def reverse
+     (fn (x)
+         (if (nil? x)
+           x
+           (append (reverse (cdr x))
+                   (car x)))))
 
 (def map
      (fn (xs f)

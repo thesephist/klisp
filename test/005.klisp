@@ -1,0 +1,19 @@
+; Threading macros
+
+(do
+  (print 'Expect 171700: ')
+  (println
+    (-> (nat 100)
+        (filter even?)
+        (map (fn (x ignored ignored) (* x x)) 200 300)
+        sum)))
+
+(do
+  (print 'Expect 50: ')
+  (println
+    (->> 1
+         inc
+         (+ 2 3)
+         ((fn (ignored x) (* x x)) 100)
+         inc)))
+
