@@ -3,7 +3,9 @@ std := load('../vendor/std')
 log := std.log
 f := std.format
 each := std.each
+map := std.map
 reduce := std.reduce
+flatten := std.flatten
 
 klisp := load('klisp')
 
@@ -300,6 +302,17 @@ m('print')
 		sexpr := term.2
 		` because syntax in SyntaxTests is not normalized,
 			we read twice here to normalize `
+		t(msg, read(print((read(line).1).0)), read(line))
+	))
+	` use EvalTests to test print, since they're more complex,
+		but we need to first expand out multiline tests. `
+	EvalTestLines := flatten(map(EvalTests, term => type(term.1) :: {
+		'string' -> [term.1]
+		_ -> term.1
+	}))
+	each(EvalTestLines, term => (
+		msg := term
+		line := term
 		t(msg, read(print((read(line).1).0)), read(line))
 	))
 )
