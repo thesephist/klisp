@@ -1,4 +1,10 @@
-; Threading macros
+; Threading macros, partial application
+
+(do
+  (print 'add1 100 = 101: ')
+  (def hundred 100)
+  (def add1 (partial (+ _ 1)))
+  (println (add1 100)))
 
 (do
   (print 'Expect 171700: ')
@@ -9,11 +15,12 @@
         sum)))
 
 (do
-  (print 'Expect 50: ')
+  (print 'Expect 200: ')
   (println
     (->> 1
          inc
          (+ 2 3)
          ((fn (ignored x) (* x x)) 100)
-         inc)))
+         inc
+         ((partial (* 2 2 _))))))
 

@@ -221,6 +221,15 @@
               (apply-partials (reverse (cdr terms))
                               (car terms)))))
 
+; partial application
+(def partial
+     (macro (terms)
+            (list ,fn
+                  ,(-partial-arg)
+                  (map (car terms)
+                       (fn (x)
+                           (if (= x ,_) ,-partial-arg x))))))
+
 ; list methods
 (def nth
      (fn (xs i)
