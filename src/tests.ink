@@ -75,6 +75,8 @@ EvalTests := [
 		'(& (= 3 3) (= 1 2))', false]
 	['variadic addition'
 		'(+ 1 2 3 4 5)', 15]
+	['basic arithmetic ops with single arguments'
+		'(+ (+ 1) (- 2) (* 3) (/ 4) (# 5) (% 6))', 21]
 	['variadic addition, cons'
 		'(+ . (1 2 3 4 5 6))', 21]
 	['mixed arithmetic'
@@ -133,6 +135,20 @@ EvalTests := [
 		'(quote (123 . 456))', [123, 456]]
 	['shorthand quote'
 		',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
+	['shorthand quote on symbols and atoms', [
+		'(def list
+			  (macro (items)
+					 ((def -list
+						   (fn (items)
+							   (if (= items ())
+								 ()
+								 (cons ,cons
+									   (cons (car items)
+											 (cons (-list (cdr items))
+												   ()))))))
+					  items)))'
+		'(list ,abc ,123 ,\'def\' ,())'
+	], [symbol('abc'), [123, ['def', [(), ()]]]]]
 	['double quote'
 		'(quote (quote 1 2 3))', [symbol('quote'), [1, [2, [3, ()]]]]]
 	['car of quote'
