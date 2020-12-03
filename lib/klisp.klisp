@@ -380,6 +380,30 @@
            0
            (inc (size (cdr xs))))))
 
+(def zip-with
+     (fn (xs ys f)
+         (if (| (nil? xs) (nil? ys))
+           ()
+           (cons (f (car xs) (car ys))
+                 (zip-with (cdr xs) (cdr ys) f)))))
+
+(def zip
+     (fn (xs ys)
+         (zip-with xs ys list)))
+
+(def take
+     (fn (xs n)
+         (if (zero? n)
+           ()
+           (cons (car xs)
+                 (take (cdr xs) (dec n))))))
+
+(def flatten
+     (fn (xs)
+         (reduce xs join ())))
+
+; TODO: sort
+
 ; utilities
 (def println
      (macro (terms)

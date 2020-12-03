@@ -36,6 +36,32 @@
        (sum (list fifteen eighteen ten six three)))
   (println 'total = 82:' total))
 
+; take, flatten, zip, zip-with
+(def one
+     (flatten (list (nat 3)
+                    (list 4 5 6)
+                    ,(7 8)
+                    (range 9 11 1))))
+
+(def two
+     (flatten (zip (filter (nat 10) odd?)
+                   (filter (nat 10) even?))))
+
+(def three
+     (zip-with (map (nat 10) (partial (/ _ 2)))
+               (map (nat 10) (partial (/ _ 2)))
+               +))
+
+(def four
+     (take (nat 100) 10))
+
+; test results
+(def all-equal?
+     (every? (map (list one two three four)
+                  (partial (= (nat 10) _)))))
+
+(println 'should be true:' all-equal?)
+
 ; for-each
 (each x-list println)
 
