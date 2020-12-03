@@ -1,0 +1,63 @@
+; math library
+; depends on klisp.klisp
+
+; Euclid's GCD algorithm
+(defn gcd (a b)
+      ; prereq: a < b
+      (do
+        (defn sub (a b)
+              (if (zero? a)
+                b
+                (sub (% b a) a)))
+        (def a (abs a))
+        (def b (abs b))
+        (if (> a b)
+          (sub b a)
+          (sub a b))))
+
+; LCM using GCD
+(defn lcm (a b)
+      (* a (/ b (gcd a b))))
+
+(defn factor? (n c)
+      (zero? (% n c)))
+
+; prime filter
+(defn prime? (n)
+      (if (< n 2)
+        false
+        (do
+          (def max (inc (floor (sqrt n))))
+          (defn sub (i)
+                (if (= i max)
+                  true
+                  (if (factor? n i)
+                    false
+                    (sub (inc i)))))
+          (sub 2))))
+
+
+; prime factorize natural number
+(defn prime-factors (n)
+      (do
+        (defn sub (pfs m pf)
+              (if (= m 1)
+                pfs
+                (if (factor? m pf)
+                  (sub (cons pf pfs)
+                       (/ m pf)
+                       pf)
+                  (sub pfs
+                       m
+                       (inc pf)))))
+        (reverse (sub () n 2))))
+
+(defn randi (max)
+      (floor (* (rand) max)))
+
+(defn mean (xs)
+      (/ (sum xs) (size xs)))
+
+(defn geomean (xs)
+      (# (prod xs) (/ 1 (size xs))))
+
