@@ -248,7 +248,8 @@ class Block extends Component {
                             text: evt.target.value,
                         })}
                         onkeydown=${evt => {
-                            if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+                            if (evt.key == 'Enter' && (evt.ctrlKey || evt.metaKey || evt.shiftKey)) {
+                                evt.preventDefault();
                                 this.eval(evt);
                             } else {
                                 handleEditorKeystroke(evt);
@@ -282,9 +283,10 @@ class Block extends Component {
                     onkeydown=${evt => {
                         if (
                             evt.key == 'Enter'
-                            && (evt.ctrlKey || evt.metaKey)
+                            && (evt.ctrlKey || evt.metaKey || evt.shiftKey)
                             || evt.key == 'Escape'
                         ) {
+                            evt.preventDefault();
                             this.editing = false;
                             this.render();
                         }
@@ -486,7 +488,7 @@ class App extends Component {
                 default: {
                     this.doc.reset([
                         para('# A tour of Nightvale'),
-                        para('*Nightvale* is an interactive notebook that runs Klisp (<https://github.com/thesephist/klisp>). You can click on any block of text to edit it like Markdown, or start typing in a code block to write and run a Klisp program. You\'re currently on the _sandbox_ page, which means your changes here won\'t be saved.\nFor example, here\'s a simple program to add some numbers. You can tap the `Run` button or type Control/Cmd + Enter in the code editor to run the program.'),
+                        para('*Nightvale* is an interactive notebook that runs Klisp (<https://github.com/thesephist/klisp>). You can click on any block of text to edit it like Markdown, or start typing in a code block to write and run a Klisp program. You\'re currently on the _sandbox_ page, which means your changes here won\'t be saved.\nFor example, here\'s a simple program to add some numbers. You can tap the `Run` button or type Control/Cmd + Enter (or Shift + Enter) in the code editor to run the program.'),
                         code('(+ 1 2 3 4)'),
                         para('Nightvale code snippets can also include more complex structures and macros -- the entire Klisp standard library is available in Nightvale. In this next program, we find first ten perfect squares.'),
                         code('(def one-to-ten (map (seq 10) inc))\n(println one-to-ten)\n(def square\n     (fn (n) (* n n)))\n(map one-to-ten square)'),
