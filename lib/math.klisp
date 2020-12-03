@@ -36,7 +36,6 @@
                     (sub (inc i)))))
           (sub 2))))
 
-
 ; prime factorize natural number
 (defn prime-factors (n)
       (do

@@ -402,8 +402,6 @@
      (fn (xs)
          (reduce xs join ())))
 
-; TODO: sort
-
 ; utilities
 (def println
      (macro (terms)
