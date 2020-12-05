@@ -424,6 +424,11 @@
                  (partition (drop xs n) n)))))
 
 ; composites: persistent immutable associative array
+;
+; comps store key-value pairs in a list as
+; ((key . value) (key . value) (key . value)) for O(n) lookup and O(1) insert.
+; Each entry is a single cons cell rather than a list to make value lookup a bit
+; more efficient.
 (def comp
      (macro (terms)
             (do
@@ -436,6 +441,7 @@
                                (-comp (cddr items))))))
               (-comp terms))))
 
+; recursive value lookup by key
 (def getc
      (fn (cp k)
          (if (nil? cp)
@@ -444,9 +450,22 @@
              (cdar cp)
              (getc (cdr cp) k)))))
 
+; comps are immutable, and new values are set by adding new entries
+; to the head of the comp's underlying list. setc does not modify the
+; given comp and returns a new comp with the new key, value set.
 (def setc
      (fn (cp k v)
          (cons (cons k v) cp)))
+
+; get just the comp keys
+(def keys
+     (fn (cp)
+         (map cp car)))
+
+; get just the comp values
+(def values
+     (fn (cp)
+         (map cp cdr)))
 
 ; utilities
 (def println

@@ -24,7 +24,7 @@
   (print 'ten: ')
   (println (getc c 10))
 
-  (println 'numbers: ')
+  (println 'numbers:')
   (-> (nat 10)
       (map (partial (getc c _)))
       (partition 5)
@@ -41,4 +41,11 @@
   (print '5: ')
   (println (+ (getc co (list 1 1))
               (getc co (list 2 1)))))
+
+; keys, values
+(do
+  (println 'keys:')
+  (println (keys c))
+  (println 'values:')
+  (println (values c)))
 

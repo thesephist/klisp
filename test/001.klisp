@@ -63,9 +63,6 @@
               (list 36 37 38 39 40))
        (car (partition (nat 100) 10))))
 
-(println five)
-(println six)
-
 ; test results
 (def all-equal?
      (every? (map (list one two three four five six)
