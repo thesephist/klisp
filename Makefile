@@ -46,5 +46,7 @@ ci:
 	./util/ink-linux ./src/cli.ink test/002.klisp
 	./util/ink-linux ./src/cli.ink test/003.klisp
 	./util/ink-linux ./src/cli.ink test/004.klisp
+	./util/ink-linux ./src/cli.ink test/005.klisp
+	./util/ink-linux ./src/cli.ink test/006.klisp
 	./util/ink-linux ./src/tests.ink
 
