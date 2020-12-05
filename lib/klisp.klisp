@@ -243,6 +243,14 @@
            (= (car xs) x)
            (nth? (cdr xs) (dec i) x))))
 
+(def last
+     (fn (xs)
+         (if (nil? xs)
+           ()
+           (if (nil? (cdr xs))
+             (car xs)
+             (last (cdr xs))))))
+
 (def index
      (fn (xs x)
          (do
@@ -393,14 +401,52 @@
 
 (def take
      (fn (xs n)
-         (if (zero? n)
+         (if (| (nil? xs) (zero? n))
            ()
            (cons (car xs)
                  (take (cdr xs) (dec n))))))
 
+(def drop
+     (fn (xs n)
+         (if (| (nil? xs) (zero? n))
+           xs
+           (drop (cdr xs) (dec n)))))
+
 (def flatten
      (fn (xs)
          (reduce xs join ())))
+
+(def partition
+     (fn (xs n)
+         (if (nil? xs)
+           ()
+           (cons (take xs n)
+                 (partition (drop xs n) n)))))
+
+; composites: persistent immutable associative array
+(def comp
+     (macro (terms)
+            (do
+              (def -comp
+                   (fn (items)
+                       (if (nil? items)
+                         ()
+                         (list ,cons
+                               (list ,cons (car items) (cadr items))
+                               (-comp (cddr items))))))
+              (-comp terms))))
+
+(def getc
+     (fn (cp k)
+         (if (nil? cp)
+           ()
+           (if (= k (caar cp))
+             (cdar cp)
+             (getc (cdr cp) k)))))
+
+(def setc
+     (fn (cp k v)
+         (cons (cons k v) cp)))
 
 ; utilities
 (def println

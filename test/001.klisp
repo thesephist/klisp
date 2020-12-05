@@ -55,12 +55,25 @@
 (def four
      (take (nat 100) 10))
 
+(def five
+     (drop (range (neg 20) 11 1) 21))
+
+(def six
+     (when (= (last (partition (nat 40) 7))
+              (list 36 37 38 39 40))
+       (car (partition (nat 100) 10))))
+
+(println five)
+(println six)
+
 ; test results
 (def all-equal?
-     (every? (map (list one two three four)
+     (every? (map (list one two three four five six)
                   (partial (= (nat 10) _)))))
 
-(println 'should be true:' all-equal?)
+(if all-equal?
+  (println 'list functions...correct!')
+  (println 'list functions...INCORRECT!?'))
 
 ; for-each
 (each x-list println)

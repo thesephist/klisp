@@ -1,0 +1,44 @@
+; composite type (persistent immutable assoc array)
+
+; simple keys, comp, getc, setc
+(def c
+     (comp 1 'one'
+           2 'two'
+           3 'three'
+           4 'four'
+           5 'five'
+           6 'six'
+           7 'seven'
+           8 'eight'
+           9 'nine'))
+
+(do
+  (print 'three: ')
+  (println (getc c 3))
+
+  (print '(): ')
+  (println (getc c 10)))
+
+(do
+  (def c (setc c 10 'ten'))
+  (print 'ten: ')
+  (println (getc c 10))
+
+  (println 'numbers: ')
+  (-> (nat 10)
+      (map (partial (getc c _)))
+      (partition 5)
+      (each println)))
+
+; complex keys
+(def co
+     (comp (list 1 1) 2
+           (list 1 2) 3
+           (list 2 1) 3
+           (list 2 2) 4))
+
+(do
+  (print '5: ')
+  (println (+ (getc co (list 1 1))
+              (getc co (list 2 1)))))
+
