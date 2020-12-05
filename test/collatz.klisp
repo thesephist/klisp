@@ -1,0 +1,30 @@
+; Collatz sequences
+
+(defn collatz (n)
+      (if (even? n)
+        (/ n 2)
+        (+ (* 3 n) 1)))
+
+(defn collatz-seq (n)
+      (if (= 1 n)
+        ,(1)
+        (cons n
+              (collatz-seq (collatz n)))))
+
+; prints numbers 1..100 and the number of steps each
+; takes to converge collatz-seq to 1, for any sequence
+; at or longer than 100 iterations
+(-> (nat 200)
+    (map collatz-seq)
+    (filter (fn (seq)
+                (>= (size seq) 100)))
+    (each (fn (seq)
+              (println (+ (number->string (car seq))
+                          ' -> '
+                          (number->string (size seq)))))))
+
+; print the Collatz sequence for 171, which is particular long
+(do
+  (print 'Collatz(171): ')
+  (println (collatz-seq 171)))
+
