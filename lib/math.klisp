@@ -51,6 +51,21 @@
                        (inc pf)))))
         (reverse (sub () n 2))))
 
+; naive factorize
+(defn factors (n)
+      (let (first-half (-> (nat (floor (sqrt n)))
+                           (filter (partial (factor? n _)))))
+        (cond
+          ((nil? first-half) first-half)
+          ((nil? (cdr first-half)) first-half)
+          (true
+            (join first-half
+                  (let (rev-first-half (reverse first-half))
+                    (if (= (car rev-first-half)
+                           (/ n (car rev-first-half)))
+                      (cdr (map rev-first-half (partial (/ n _))))
+                      (map rev-first-half (partial (/ n _))))))))))
+
 (defn randi (max)
       (floor (* (rand) max)))
 

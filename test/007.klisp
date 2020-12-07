@@ -1,0 +1,22 @@
+; math library exercises
+
+(do
+  (println 'Primes under 50:')
+  (println (-> (nat 50)
+               (filter prime?))))
+
+(do
+  (println 'Prime factors of 1-25')
+  (-> (nat 25)
+      (map prime-factors)
+      (reduce (fn (a b) (cons b a))
+              ())
+      reverse
+      println))
+
+(do
+  (println 'Factors of 7\'s')
+  (-> (range 7 100 10)
+      (map factors)
+      (each println)))
+
