@@ -33,14 +33,20 @@ Version := '0.1'
 	this seemed like a reasonable number for a web repl `
 MaxWebReplSteps := 100000
 
-withCore := cb => readFile('./lib/klisp.klisp', file => file :: {
-	() -> log('error: could not locate standard library')
-	_ -> (
-		eval(read(file), Env)
-		cb(Env)
-	)
-	_ -> cb(file)
-})
+` bootstrapping function to boot up an environment with given libraries `
+withLibs := (libs, cb) => (sub := (i, env) => i :: {
+	len(libs) -> cb(env)
+	_ -> readFile(libs.(i), file => (
+		eval(read(file), env)
+		sub(i + 1, env)
+	))
+})(0, clone(Env))
+
+` boot up an environment with core libraries `
+withCore := cb => withLibs([
+	'./lib/klisp.klisp'
+	'./lib/math.klisp'
+], cb)
 
 Args := args()
 Args.2 :: {
