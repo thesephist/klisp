@@ -366,6 +366,11 @@ Env := {
 		}
 	))
 	symbol('number->string'): makeFn(L => string(L.0))
+	symbol('string->symbol'): makeFn(L => symbol(L.0))
+	symbol('symbol->string'): makeFn(L => symbol?(L.0) :: {
+		true -> slice(L.0, 1, len(L.0))
+		_ -> L.0
+	})
 
 	` I/O and system `
 	symbol('print'): makeFn(L => out(reduceL(

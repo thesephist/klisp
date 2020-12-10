@@ -112,6 +112,10 @@ EvalTests := [
 		'(+ (number->string 1.23)
 			(number->string 40)
 			(number->string (- 100 90)))', '1.230000004010']
+	['string->symbol'
+		'(cons (string->symbol \'quote\') (string->symbol (+ \'hel\' \'lo\'))', [symbol('quote'), symbol('hello')]]
+	['symbol->string'
+		'(cons (symbol->string ,quote) (symbol->string (quote hello)))', ['quote', 'hello']]
 	['define form', [
 		'(def a 647)'
 		'(+ a a)'

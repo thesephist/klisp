@@ -46,6 +46,13 @@
 (def id
      (fn (x) x))
 
+(def gensym
+     (fn ()
+         (-> (rand)
+             (* 1000000)
+             number->string
+             string->symbol)))
+
 ; basic math
 (def neg
      (fn (n) (- 0 n)))
@@ -142,13 +149,14 @@
             (do
               (def cndn (car terms))
               (def body (cdr terms))
+              (def -while-f (gensym))
               (quasiquote
-                ((def -while-f
+                ((def (unquote -while-f)
                       (fn ()
                           (if (unquote cndn)
                             (do
                               (unquote (cons ,do body))
-                              (-while-f))
+                              ((unquote -while-f)))
                             ()))))))))
 
 ; shorthand for defining functions in scope
@@ -176,16 +184,17 @@
 (def match
      (macro (terms)
             (do
+              (def -match-val (gensym))
               (def -match
                    (fn (terms)
                        (if (nil? terms)
                          ()
                          (quasiquote
-                           (if (= -match-val (unquote (car (car terms))))
+                           (if (= (unquote -match-val) (unquote (car (car terms))))
                              (unquote (cadr (car terms)))
                              (unquote (-match (cdr terms))))))))
               (quasiquote
-                (let (-match-val (unquote (car terms)))
+                (let ((unquote -match-val) (unquote (car terms)))
                   (unquote (-match (cdr terms))))))))
 
 ; thread-first
@@ -224,11 +233,12 @@
 ; partial application
 (def partial
      (macro (terms)
-            (list ,fn
-                  ,(-partial-arg)
-                  (map (car terms)
-                       (fn (x)
-                           (if (= x ,_) ,-partial-arg x))))))
+            (let (-partial-arg (gensym))
+              (list ,fn
+                    (cons -partial-arg ())
+                    (map (car terms)
+                         (fn (x)
+                             (if (= x ,_) -partial-arg x)))))))
 
 ; list methods
 (def nth
@@ -485,12 +495,13 @@
 (def log-runtime
      ; prints runtime (finish - start) of an expression
      (macro (terms)
-            (quasiquote
-              (do
-                (def start (time))
-                (def -val (unquote (cadr terms)))
-                (println (+ 'Runtime for ' (unquote (car terms)) ':')
-                         (number->string (* 1000 (- (time) start)))
-                         'ms')
-                -val))))
+            (let (-val (gensym))
+              (quasiquote
+                (do
+                  (def start (time))
+                  (def (unquote -val) (unquote (cadr terms)))
+                  (println (+ 'Runtime for ' (unquote (car terms)) ':')
+                           (number->string (* 1000 (- (time) start)))
+                           'ms')
+                  (unquote -val))))))
 

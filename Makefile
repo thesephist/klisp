@@ -10,6 +10,7 @@ run:
 	ink ./src/cli.ink test/005.klisp
 	ink ./src/cli.ink test/006.klisp
 	ink ./src/cli.ink test/007.klisp
+	ink ./src/cli.ink test/008.klisp
 
 # run as repl
 repl:
@@ -50,5 +51,6 @@ ci:
 	./util/ink-linux ./src/cli.ink test/005.klisp
 	./util/ink-linux ./src/cli.ink test/006.klisp
 	./util/ink-linux ./src/cli.ink test/007.klisp
+	./util/ink-linux ./src/cli.ink test/008.klisp
 	./util/ink-linux ./src/tests.ink
 

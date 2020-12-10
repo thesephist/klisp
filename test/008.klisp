@@ -1,0 +1,29 @@
+; hygienic macros, gensym
+
+; while duration
+(let (start (time))
+  ; spin for 10ms
+  ; usually doesn't run during ci tests b/c time
+  (while (> 0.01 (- (time) start))
+         (println (- (time) start))))
+
+; nested let
+(do
+  (print 'Expect: 60: ')
+  (println
+    (let (a 10)
+      (let (b 20)
+        (let (c 30)
+          (sum (list a b c)))))))
+
+; nested match
+(do
+  (print 'Expect: 250: ')
+  (println
+    (match 100
+           (10 'ten')
+           (20 'twenty')
+           ((match 30
+                   (20 200)
+                   (30 100)) 250))))
+
