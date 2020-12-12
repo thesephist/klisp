@@ -1,0 +1,15 @@
+; tail call optimization test
+; attempts to exhaust call stack
+
+(def max-stack 1000000)
+
+(defn sub (n)
+      (if (zero? n)
+        (println 'Done!')
+        (do
+          (def next-n (dec n))
+          ; tail position of both if and do
+          (sub next-n))))
+
+(sub max-stack)
+
