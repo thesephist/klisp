@@ -1,0 +1,82 @@
+; eval, a (mostly) metacircular klisp evaluator, in klisp
+
+; NOTE: fns only supports 1 and 2 args, no def, do, macro
+(defn eval-env (node env)
+      (cond
+        ; self-evaluating atoms
+        ((nil? node) ())
+        ((number? node) node)
+        ((boolean? node) node)
+        ((string? node) node)
+
+        ; variable dereference
+        ((symbol? node) (env node))
+
+        ; forms
+        ((list? node)
+         (match (car node)
+                (,quote (cadr node))
+                (,if
+                  (if (eval-env (cadr node) env)
+                    (eval-env (car (cddr node)) env)
+                    (eval-env (cadr (cddr node)) env)))
+                (,fn
+                  (do
+                    (def param (car (cadr node)))
+                    (def body (car (cddr node)))
+                    (fn (arg)
+                        (eval-env body
+                                  ; child env (scope)
+                                  (fn (symb)
+                                      (if (= symb param)
+                                        arg
+                                        (env symb)))))))
+                ; fn eval
+                ((car node)
+                 (do
+                   (def rator (car node))
+                   (def rands (cdr node))
+                   (match (size rands)
+                          (1 ((eval-env rator env) (eval-env (car rands) env)))
+                          (2 ((eval-env rator env) (eval-env (car rands) env)
+                                                   (eval-env (cadr rands) env))))))))
+        (true (println 'unknown expression type:' node))))
+
+; default global bindings
+(defn empty-env (symb)
+      (match symb
+             (,true true)
+             (,false false)
+             (,+ +)
+             (,- -)
+             (,* *)
+             (,/ /)
+             (,= =)
+             (,inc inc)
+             (,dec dec)
+             (symb
+               (println 'unbound variable:' (symbol->string symb)))))
+
+; exported eval with default global bindings
+(defn eval (node)
+      (eval-env node empty-env))
+
+; tests
+(def expected
+     (list () 42 42 'hello world' 42 ,(+ 1 2 3) 6))
+(def results
+     (list (eval ,())
+           (eval ,42)
+           (eval ,(inc (dec (+ 31 11))))
+           (eval ,'hello world')
+           (eval ,(if (if (= 'hi' 'hi')
+                        (= (+ 1 1) 3)
+                        true)
+                    'invalid-output'
+                    (inc ((fn (x) (inc (inc x))) 39))))
+           (eval ,(quote (+ 1 2 3)))
+           (eval (eval ,(quote (+ 1 (+ 2 3)))))))
+(println 'eval test:'
+         (if (= expected results) '[passed]' '[failed]')
+         results)
+
