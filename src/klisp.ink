@@ -327,18 +327,15 @@ Env := {
 	symbol('time'): makeFn(time)
 
 	` arithmetic and logical operators `
-	symbol('='): makeFn(L => reduceL(L.1, (a, b) => a = b, L.0))
-	symbol('<'): makeFn(L => reduceL(L.1, (a, b) => a < b, L.0))
-	symbol('>'): makeFn(L => reduceL(L.1, (a, b) => a > b, L.0))
+	symbol('='): makeFn(L => every(reduceL(L.1, (acc, x) => acc.len(acc) := L.0 = x, [])))
+	symbol('<'): makeFn(L => L.0 < L.'1'.0)
+	symbol('>'): makeFn(L => L.0 > L.'1'.0)
 	symbol('+'): makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
 	symbol('-'): makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
 	symbol('*'): makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
 	symbol('#'): makeFn(L => reduceL(L.1, (a, b) => pow(a, b), L.0))
 	symbol('/'): makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
 	symbol('%'): makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
-	symbol('&'): makeFn(L => reduceL(L.1, (a, b) => a & b, L.0))
-	symbol('|'): makeFn(L => reduceL(L.1, (a, b) => a | b, L.0))
-	symbol('^'): makeFn(L => reduceL(L.1, (a, b) => a ^ b, L.0))
 
 	` types and conversions `
 	symbol('type'): makeFn(L => L.0 :: {

@@ -1,14 +1,5 @@
 ; core library
 
-; aliases
-(def and &)
-(def or |)
-(def xor ^)
-(def not
-     (fn (x)
-         (if x false true)))
-(def ! not)
-
 ; cons cell shorthands
 (def caar
      (fn (x) (car (car x))))
@@ -18,6 +9,41 @@
      (fn (x) (cdr (car x))))
 (def cddr
      (fn (x) (cdr (cdr x))))
+
+; lazy-evaluating boolean combinators
+(def !
+     (fn (x)
+         (if x false true)))
+(def &
+     (macro (terms)
+            (if (= terms ())
+              ,true
+              (cons ,if
+                    (cons (car terms)
+                          (cons (cons ,& (cdr terms))
+                                (cons ,false ())))))))
+
+(def |
+     (macro (terms)
+            (if (= terms ())
+              ,false
+              (cons ,if
+                    (cons (car terms)
+                          (cons ,true
+                                (cons (cons ,| (cdr terms))
+                                      ())))))))
+(def ^
+     (macro (terms)
+            (cons ,!
+                  (cons (cons ,= terms)
+                        ()))))
+(def eq? =)
+(def not !)
+(def and &)
+(def or |)
+(def != ^)
+(def xor ^)
+(def neq? ^)
 
 ; type assertions
 (def nil?
@@ -38,9 +64,8 @@
      (fn (x) (= (type x) 'list')))
 (def pair?
      (fn (x)
-         (if (list? x)
-           (= (size x) 2)
-           false)))
+         (& (list? x)
+            (= (size x) 2))))
 
 ; identity
 (def id
@@ -74,8 +99,6 @@
      (fn (n) (zero? (% n 2))))
 (def odd?
      (fn (n) (! (even? n))))
-(def !=
-     (fn (a b) (! (= a b))))
 (def >=
      (fn (a b) (! (< a b))))
 (def <=

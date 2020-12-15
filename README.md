@@ -52,7 +52,7 @@ Klisp is a true lisp-1, with a minimal core of 6 special forms (`quote`, `do`, `
     ```
 - **macro** is like `fn`, but defines a macro instead of a normal function. The `list` macro is implemented in this way.
 
-These special forms, along with a small set of builtin functions like arithmetic operators and `car` / `cdr` / `cons`, are provided in the default environment. Every other language feature, including fundamental forms like `let` and `list`, is implemented in the userspace in `lib/klisp.klisp` as functions or macros.
+These special forms, along with a small set of builtin functions like arithmetic operators and `car` / `cdr` / `cons`, are provided in the default environment. Every other language feature, including short-circuiting binary operators like `and` and `or` and fundamental forms like `let` and `list`, is implemented in the userspace in `lib/klisp.klisp` as functions or macros.
 
 ### Usage
 

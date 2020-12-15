@@ -24,6 +24,11 @@ makeFn := klisp.makeFn
 reduceL := klisp.reduceL
 Env := klisp.Env
 
+core := load('core')
+
+withLibs := core.withLibs
+withCore := core.withCore
+
 nightvale := load('nightvale')
 
 safeEval := nightvale.evalAtMostSteps
@@ -32,21 +37,6 @@ Version := '0.1'
 ` after some testing, considering Go/Ink's stack limit,
 	this seemed like a reasonable number for a web repl `
 MaxWebReplSteps := 100000
-
-` bootstrapping function to boot up an environment with given libraries `
-withLibs := (libs, cb) => (sub := (i, env) => i :: {
-	len(libs) -> cb(env)
-	_ -> readFile(libs.(i), file => (
-		eval(read(file), env)
-		sub(i + 1, env)
-	))
-})(0, clone(Env))
-
-` boot up an environment with core libraries `
-withCore := cb => withLibs([
-	'./lib/klisp.klisp'
-	'./lib/math.klisp'
-], cb)
 
 Args := args()
 Args.2 :: {

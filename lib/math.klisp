@@ -71,6 +71,7 @@
 
 (defn mean (xs)
       (/ (sum xs) (size xs)))
+(def avg mean)
 
 (defn geomean (xs)
       (# (prod xs) (/ 1 (size xs))))

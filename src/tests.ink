@@ -15,6 +15,11 @@ eval := klisp.eval
 print := klisp.print
 Env := klisp.Env
 
+core := load('core')
+
+withLibs := core.withLibs
+withCore := core.withCore
+
 Newline := char(10)
 logf := (s, x) => log(f(s, x))
 
@@ -75,6 +80,13 @@ SyntaxTests := [
 EvalTests := [
 	['boolean equalities'
 		'(& (= 3 3) (= 1 2))', false]
+	['variadic boolean relations'
+		'(list (& true true true)
+			(& false true false)
+			(| false false true)
+			(| false false false)
+			(^ true true false)
+			(^ false false false))', [true, [false, [true, [false, [true, [false, ()]]]]]]]
 	['variadic addition'
 		'(+ 1 2 3 4 5)', 15]
 	['basic arithmetic ops with single arguments'
@@ -141,20 +153,8 @@ EvalTests := [
 		'(quote (123 . 456))', [123, 456]]
 	['shorthand quote'
 		',(10 20 30 40 50)', [10, [20, [30, [40, [50, ()]]]]]]
-	['shorthand quote on symbols and atoms', [
-		'(def list
-			  (macro (items)
-					 ((def -list
-						   (fn (items)
-							   (if (= items ())
-								 ()
-								 (cons ,cons
-									   (cons (car items)
-											 (cons (-list (cdr items))
-												   ()))))))
-					  items)))'
-		'(list ,abc ,123 ,\'def\' ,())'
-	], [symbol('abc'), [123, ['def', [(), ()]]]]]
+	['shorthand quote on symbols and atoms'
+		'(list ,abc ,123 ,\'def\' ,())', [symbol('abc'), [123, ['def', [(), ()]]]]]
 	['double quote'
 		'(quote (quote 1 2 3))', [symbol('quote'), [1, [2, [3, ()]]]]]
 	['car of quote'
@@ -175,58 +175,15 @@ EvalTests := [
 		'(map nums square)'
 	], [1, [4, [9, [16, [25, ()]]]]]]
 	['list macro', [
-		'(def lister
-			  (fn (items)
-				  (if (= items ())
-					()
-				    (cons ,cons
-						  (cons (car items)
-							    (cons (lister (cdr items))
-									  ()))))))'
-		'(def list
-			  (macro (items) (lister items)))'
 		'(def square (fn (x) (* x x)))'
 		'(list 1 2 3 4 (+ 2 3) (list 1 2 3))'
 	], [1, [2, [3, [4, [5, [[1, [2, [3, ()]]], ()]]]]]]]
-	['let macro', [
-		'(def lister
-			  (fn (items)
-				  (if (= items ())
-					()
-				    (cons ,cons
-						  (cons (car items)
-							    (cons (lister (cdr items))
-									  ()))))))'
-		'(def list
-			  (macro (items) (lister items)))'
-		'(def let
-			  (macro (terms)
-					 (do
-					   (def decl (car terms))
-					   (def declname (car decl))
-					   (def declval (car (cdr decl)))
-					   (def body (car (cdr terms)))
-					   (list
-						 (list ,fn (list declname) body)
-						 declval))))'
-		'(let (a 10) (let (b 20) (* a b)))'
-	], 200]
-	['sum, size, average', [
-		'(def sum
-			  (fn (xs)
-				  (if (= xs ())
-					  0
-					  (+ (car xs) (sum (cdr xs))))))'
-		'(def size
-			  (fn (xs)
-				  (if (= xs ())
-					  0
-					  (+ 1 (size (cdr xs))))))'
-		'(def avg
-			  (fn (xs)
-				  (/ (sum xs) (size xs))))'
-		'(avg (quote (100 200 300 500)))'
-	], 275]
+	['let macro'
+		'(let (a 10) (let (b 20) (* a b)))', 200]
+	['let macro with shadowing'
+		'(let (a 5) (let (b 20) (let (a 10) (* a b))))', 200]
+	['sum, size, average'
+		'(avg (quote (100 200 300 500)))', 275]
 	[
 		'builtin fn type'
 		'(+ (type 0) (type \'hi\') (type ,hi) (type true) (type type) (type ()) (type ,(0)))'
@@ -267,60 +224,62 @@ EvalTests := [
 	]
 ]
 
+` run tests with core libraries loaded `
+withCore(env => (
+	m('read')
+	(
+		each(SyntaxTests, term => (
+			msg := term.0
+			line := term.1
+			sexpr := term.2
+			t(msg, (read(line).1).0, sexpr)
+		))
+	)
 
-m('read')
-(
-	each(SyntaxTests, term => (
-		msg := term.0
-		line := term.1
-		sexpr := term.2
-		t(msg, (read(line).1).0, sexpr)
-	))
-)
+	m('eval')
+	(
+		each(EvalTests, testEval := term => (
+			msg := term.0
+			prog := term.1
+			val := term.2
+			type(prog) :: {
+				'string' -> t(msg, eval(read(prog), env), val)
+				'composite' -> reduce(prog, (env, term, i) => (
+					i :: {
+						(len(prog) - 1) -> t(msg, eval(read(term), env), val)
+						_ -> eval(read(term), env)
+					}
+					env
+				), env)
+				_ -> log(f('error: invalid eval test {{0}}', [prog]))
+			}
+		))
+	)
 
-m('eval')
-(
-	each(EvalTests, testEval := term => (
-		msg := term.0
-		prog := term.1
-		val := term.2
-		type(prog) :: {
-			'string' -> t(msg, eval(read(prog), Env), val)
-			'composite' -> reduce(prog, (env, term, i) => (
-				i :: {
-					(len(prog) - 1) -> t(msg, eval(read(term), env), val)
-					_ -> eval(read(term), env)
-				}
-				env
-			), Env)
-			_ -> log(f('error: invalid eval test {{0}}', [prog]))
-		}
-	))
-)
-
-m('print')
-(
-	each(SyntaxTests, term => (
-		msg := term.0
-		line := term.1
-		sexpr := term.2
-		` because syntax in SyntaxTests is not normalized,
+	m('print')
+	(
+		each(SyntaxTests, term => (
+			msg := term.0
+			line := term.1
+			sexpr := term.2
+			` because syntax in SyntaxTests is not normalized,
 			we read twice here to normalize `
-		t(msg, read(print((read(line).1).0)), read(line))
-	))
-	` use EvalTests to test print, since they're more complex,
+			t(msg, read(print((read(line).1).0)), read(line))
+		))
+		` use EvalTests to test print, since they're more complex,
 		but we need to first expand out multiline tests. `
-	EvalTestLines := flatten(map(EvalTests, term => type(term.1) :: {
-		'string' -> [term.1]
-		_ -> term.1
-	}))
-	each(EvalTestLines, term => (
-		msg := term
-		line := term
-		t(msg, read(print((read(line).1).0)), read(line))
-	))
-)
+		EvalTestLines := flatten(map(EvalTests, term => type(term.1) :: {
+			'string' -> [term.1]
+			_ -> term.1
+		}))
+		each(EvalTestLines, term => (
+			msg := term
+			line := term
+			t(msg, read(print((read(line).1).0)), read(line))
+		))
+	)
 
-` end test suite, print result `
-(s.end)()
+	` end test suite, print result `
+	(s.end)()
+))
 

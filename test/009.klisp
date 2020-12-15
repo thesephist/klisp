@@ -1,0 +1,51 @@
+; lazy evaluation of boolean combinators
+
+; helpers
+(defn legal () ())
+(defn illegal ()
+      (println 'ILLEGAL: SHOULD NEVER BE PRINTED'))
+
+(defn trueof (f)
+      (do (f) true))
+(defn falseof (f)
+      (do (f) false))
+
+; tests
+(def and-results
+     (list (and (trueof legal) (trueof legal)) ;; tt -> t
+           (and (trueof legal) (falseof legal)) ;; tf -> f
+           (and (falseof legal) (trueof illegal)) ;; ft -> f
+           (and (falseof legal) (falseof illegal)) ;; ff -> f
+           (and (trueof legal) (trueof legal) (falseof legal) (trueof illegal)) ;; ttft -> f
+           (and (trueof legal) (trueof legal) (trueof legal) (trueof legal)))) ;; tttt -> t
+
+(def or-results
+     (list (or (trueof legal) (trueof illegal)) ;; tt -> t
+           (or (trueof legal) (falseof illegal)) ;; tf -> t
+           (or (falseof legal) (trueof legal)) ;; ft -> t
+           (or (falseof legal) (falseof legal)) ;; ff -> f
+           (or (falseof legal) (falseof legal) (trueof legal)) ;; fft -> t
+           (or (falseof legal) (trueof legal) (falseof illegal) (trueof illegal)))) ;; ftft -> t
+
+(def eq-results
+     (list (eq? 1) ; t
+           (eq? (list 1 2) (list 1 2) (list 1 2)) ; t
+           (eq? (cons 'a' 'b') (cons 'a' 'b')) ; t
+           (eq? 1 1 1 1 1 1 1) ; t
+           (eq? 1 1 2 2 3 3 4) ; f
+           (eq? (list 1 2 3) (list 1 2)))) ; f
+
+(def xor-results
+     (list (xor (trueof legal) (trueof legal) (falseof legal)) ;; ttf -> t
+           (xor (falseof legal) (falseof legal) (falseof legal)) ;; fff -> f
+           (xor (trueof legal) (trueof legal) (trueof legal)) ;; ttt -> f
+           (xor (falseof legal) (trueof legal) (falseof legal)))) ;; ftf -> t
+
+; print accumulated results
+(if (& (= and-results (list true false false false false true))
+       (= or-results (list true true true false true true))
+       (= eq-results (list true true true true false false))
+       (= xor-results (list true false false true)))
+  (println 'boolean combinator tests: [passed]')
+  (println 'boolean combinator tests: [failed]'))
+
