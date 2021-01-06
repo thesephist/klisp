@@ -69,7 +69,11 @@ rlwrap ink ./src/cli.ink
 Klisp interpreter v0.1.
 > (+ 1 2 3)
 6
-> # start typing...
+> (defn add1 (n) (+ n 1))
+(fn (n) (+ n 1))
+> (add1 41)
+42
+> ; start typing...
 ```
 
 Klisp is composed of two Ink source files, `src/klisp.ink` and `src/cli.ink`, and one library file, `lib/klisp.klisp`. Klisp also depends on the `std` and `str` libraries in `vendor/`. As long as these 5 files are accessible in those directories, running `ink src/cli.ink` will start the interpreter.
@@ -79,7 +83,7 @@ Klisp is composed of two Ink source files, `src/klisp.ink` and `src/cli.ink`, an
 Klisp has two significant flaws that were non-goals for this project.
 
 1. Klisp's current interpreter **does not handle errors very well**. This was mostly an educational project, and I don't think I'll end up writing much Klisp code, so preferred concision over error recovery in the interpreter. If I do end up writing lots of Klisp, I might come back and add better error handling in the interpreter. As it stands today, syntactic or semantic errors in Klisp code will crash the interpreter.
-2. Klisp is **not fast**. Actually, it's quite slow. That's because it's written in a dynamic, interpreted language itself. The Ink interpreter I've been testing Klisp with is a [tree-walk interpreter written in Go](https://github.com/thesephist/ink), which is itself comparable to Python on a good day. Although faster, alternative interpreters are being worked on, Klisp isn't designed to be fast, just an educational prototype mostly for myself.
+2. Klisp is **not fast**. Actually, it's quite slow. That's because it's written in a dynamic, interpreted language itself. The Ink interpreter I've been testing Klisp with is a [tree-walk interpreter written in Go](https://github.com/thesephist/ink), which is itself comparable to Python on a good day. Although faster, alternative interpreters like [Vanta, written in Go](https://github.com/thesephist/vanta), are being worked on, Klisp isn't designed to be fast, just an educational prototype mostly for myself.
 
 ## Implementation
 
