@@ -198,10 +198,12 @@ getenv := (env, name) => v := env.(name) :: {
 
 	In Klisp, fns and macros are represented as size-3 arrays to differentiate
 	from 2-element arrays that represent sexprs. The first value reports
-	whether the function is a macro or a normal function, and the second
-	value is the actual function. `
-makeFn := f => [false, f, ()]
-makeMacro := f => [true, f, ()]
+	whether the function is a macro or a normal function, and the second value
+	is the actual function. The third is optional, and contains the sexpr that
+	defines the fn or macro. This is used to pretty-print the definition. `
+makeFn := (f, L) => [false, f, L]
+makeMacro := (f, L) => [true, f, L]
+makeNative := f => makeFn(f, ())
 
 ` the evaluator `
 eval := (L, env) => type(L) :: {
@@ -241,7 +243,7 @@ eval := (L, env) => type(L) :: {
 						sub(envc, params.1, args.1)
 					)
 				})({'-env': env}, params, args)
-			))
+			), L)
 		)
 		Macro -> (
 			params := L.'1'.0
@@ -256,7 +258,7 @@ eval := (L, env) => type(L) :: {
 					)
 					` NOTE: all arguments to a macro are passed as the first parameter `
 				})({'-env': env}, params, [args, ()])
-			))
+			), L)
 		)
 		_ -> (
 			argcs := L.1
@@ -289,10 +291,10 @@ Env := {
 	` constants and fundamental forms `
 	symbol('true'): true
 	symbol('false'): false
-	symbol('car'): makeFn(L => L.'0'.0)
-	symbol('cdr'): makeFn(L => L.'0'.1)
-	symbol('cons'): makeFn(L => [L.0, L.'1'.0])
-	symbol('len'): makeFn(L => type(L.0) :: {
+	symbol('car'): makeNative(L => L.'0'.0)
+	symbol('cdr'): makeNative(L => L.'0'.1)
+	symbol('cons'): makeNative(L => [L.0, L.'1'.0])
+	symbol('len'): makeNative(L => type(L.0) :: {
 		'string' -> symbol?(L.0) :: {
 			true -> len(L.0) - 1
 			_ -> len(L.0)
@@ -301,14 +303,14 @@ Env := {
 	})
 	` (gets s a b) returns slice of string s between
 		indexes [a, b). For characters out of bounds, it returns '' `
-	symbol('gets'): makeFn(L => type(L.0) :: {
+	symbol('gets'): makeNative(L => type(L.0) :: {
 		'string' -> slice(L.0, L.'1'.0, L.'1'.'1'.0)
 		_ -> ''
 	})
 	` (sets! s a t) overwrites bytes in s with bytes from t
 		starting at index a. sets! does not grow s if out of bounds
 		due to an interpreter design limitation. It returns the new s. `
-	symbol('sets!'): makeFn(L => type(L.0) :: {
+	symbol('sets!'): makeNative(L => type(L.0) :: {
 		'string' -> (
 			s := L.0
 			idx := L.'1'.0
@@ -318,27 +320,27 @@ Env := {
 	})
 
 	` direct ports of monotonic Ink functions `
-	symbol('char'): makeFn(L => char(L.0))
-	symbol('point'): makeFn(L => point(L.0))
-	symbol('sin'): makeFn(L => sin(L.0))
-	symbol('cos'): makeFn(L => cos(L.0))
-	symbol('floor'): makeFn(L => floor(L.0))
-	symbol('rand'): makeFn(rand)
-	symbol('time'): makeFn(time)
+	symbol('char'): makeNative(L => char(L.0))
+	symbol('point'): makeNative(L => point(L.0))
+	symbol('sin'): makeNative(L => sin(L.0))
+	symbol('cos'): makeNative(L => cos(L.0))
+	symbol('floor'): makeNative(L => floor(L.0))
+	symbol('rand'): makeNative(rand)
+	symbol('time'): makeNative(time)
 
 	` arithmetic and logical operators `
-	symbol('='): makeFn(L => every(reduceL(L.1, (acc, x) => acc.len(acc) := L.0 = x, [])))
-	symbol('<'): makeFn(L => L.0 < L.'1'.0)
-	symbol('>'): makeFn(L => L.0 > L.'1'.0)
-	symbol('+'): makeFn(L => reduceL(L.1, (a, b) => a + b, L.0))
-	symbol('-'): makeFn(L => reduceL(L.1, (a, b) => a - b, L.0))
-	symbol('*'): makeFn(L => reduceL(L.1, (a, b) => a * b, L.0))
-	symbol('#'): makeFn(L => reduceL(L.1, (a, b) => pow(a, b), L.0))
-	symbol('/'): makeFn(L => reduceL(L.1, (a, b) => a / b, L.0))
-	symbol('%'): makeFn(L => reduceL(L.1, (a, b) => a % b, L.0))
+	symbol('='): makeNative(L => every(reduceL(L.1, (acc, x) => acc.len(acc) := L.0 = x, [])))
+	symbol('<'): makeNative(L => L.0 < L.'1'.0)
+	symbol('>'): makeNative(L => L.0 > L.'1'.0)
+	symbol('+'): makeNative(L => reduceL(L.1, (a, b) => a + b, L.0))
+	symbol('-'): makeNative(L => reduceL(L.1, (a, b) => a - b, L.0))
+	symbol('*'): makeNative(L => reduceL(L.1, (a, b) => a * b, L.0))
+	symbol('#'): makeNative(L => reduceL(L.1, (a, b) => pow(a, b), L.0))
+	symbol('/'): makeNative(L => reduceL(L.1, (a, b) => a / b, L.0))
+	symbol('%'): makeNative(L => reduceL(L.1, (a, b) => a % b, L.0))
 
 	` types and conversions `
-	symbol('type'): makeFn(L => L.0 :: {
+	symbol('type'): makeNative(L => L.0 :: {
 		[_, _, _] -> 'function'
 		[_, _] -> 'list'
 		_ -> ty := type(L.0) :: {
@@ -349,7 +351,7 @@ Env := {
 			_ -> ty
 		}
 	})
-	symbol('string->number'): makeFn(L => (
+	symbol('string->number'): makeNative(L => (
 		operand := L.0
 		type(operand) :: {
 			'string' -> every(map(operand, c => digit?(c) | c = '.')) :: {
@@ -362,15 +364,15 @@ Env := {
 			_ -> 0
 		}
 	))
-	symbol('number->string'): makeFn(L => string(L.0))
-	symbol('string->symbol'): makeFn(L => symbol(L.0))
-	symbol('symbol->string'): makeFn(L => symbol?(L.0) :: {
+	symbol('number->string'): makeNative(L => string(L.0))
+	symbol('string->symbol'): makeNative(L => symbol(L.0))
+	symbol('symbol->string'): makeNative(L => symbol?(L.0) :: {
 		true -> slice(L.0, 1, len(L.0))
 		_ -> L.0
 	})
 
 	` I/O and system `
-	symbol('print'): makeFn(L => out(reduceL(
+	symbol('print'): makeNative(L => out(reduceL(
 		L.1, (a, b) => a + ' ' + (type(b) :: {
 			'string' -> b
 			_ -> print(b)
@@ -401,7 +403,10 @@ print := L => L :: {
 		})(L, [])
 		'(' + cat(list, ' ') + ')'
 	)
-	[_, _, _] -> '(function)'
+	[_, _, _] -> L.2 :: {
+		() -> '(function)'
+		_ -> print(L.2)
+	}
 	_ -> type(L) :: {
 		'string' -> symbol?(L) :: {
 			true -> slice(L, 1, len(L))
