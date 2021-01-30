@@ -15,23 +15,21 @@ Syntactically, Klisp borrows from Scheme and Clojure, but tries to be as simple 
 For example, a factorial is easily defined as the product of a range of integers.
 
 ```lisp
-(def fact
-     (fn (n)
-         (prod (range 1 (inc n) 1))))
+(defn fact (n)
+      (prod (range 1 (inc n) 1)))
 (fact 10) ; => 3628800
 ```
 
 And the Fibonacci sequence is recursively defined.
 
 ```lisp
-(def fib
-     (fn (n)
-         (if (< n 2)
-             1
-             (+ (fib (dec n))
-                (fib (dec (dec n)))))))
+(defn fib (n)
+      (if (< n 2)
+          1
+          (+ (fib (dec n))
+             (fib (dec (dec n))))))
 (fib 10) ; => 89
-(map (range 0 20 1) fib)
+(map (seq 20) fib)
 ; => (1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765)
 ```
 
@@ -47,7 +45,7 @@ Klisp is a true lisp-1, with a minimal core of 6 special forms (`quote`, `do`, `
     ```lisp
     (do
       (def double
-           (n) (* 2 n))
+           (fn (n) (* 2 n)))
       (double 12)) ; => 24
     ```
 - **macro** is like `fn`, but defines a macro instead of a normal function. The `list` macro is implemented in this way.
