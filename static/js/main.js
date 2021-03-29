@@ -111,13 +111,14 @@ function handleEditorKeystroke(evt) {
         }
         case '(': {
             evt.preventDefault();
-            const idx = evt.target.selectionStart;
-            if (idx !== null) {
-                const input = evt.target.value;
-                const front = input.substr(0, idx);
-                const back = input.substr(idx);
+            const input = evt.target.value;
+            const {selectionStart, selectionEnd} = evt.target;
+            const front = input.substr(0, selectionStart);
+            const back = input.substr(selectionEnd);
+            if (selectionStart !== null) {
                 evt.target.value = front + '()' + back;
-                evt.target.setSelectionRange(idx + 1, idx + 1);
+                const cursorPos = selectionStart + 1;
+                evt.target.setSelectionRange(cursorPos, cursorPos);
             }
             break;
         }
