@@ -20,7 +20,8 @@ read := klisp.read
 eval := klisp.eval
 print := klisp.print
 symbol := klisp.symbol
-makeFn := klisp.makeFn
+setenv := klisp.setenv
+makeNative := klisp.makeNative
 reduceL := klisp.reduceL
 Env := klisp.Env
 
@@ -62,7 +63,7 @@ Args.2 :: {
 						stdout := ''
 						localEnv := clone(env)
 						printResp := s => stdout.len(stdout) := s
-						localEnv.symbol('print') := makeFn(L => printResp(reduceL(
+						setenv(localEnv, symbol('print'), makeNative(L => printResp(reduceL(
 							L.1, (a, b) => a + ' ' + (type(b) :: {
 								'string' -> b
 								_ -> print(b)
@@ -71,7 +72,7 @@ Args.2 :: {
 								'string' -> L.0
 								_ -> print(L.0)
 							}
-						)))
+						))))
 
 						out := print(safeEval(read(req.body), localEnv, MaxWebReplSteps))
 						log(f('(eval {{0}}) => {{1}}', [req.body, out]))

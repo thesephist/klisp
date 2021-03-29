@@ -12,6 +12,7 @@ Macro := klisp.Macro
 reduceL := klisp.reduceL
 symbol? := klisp.symbol?
 getenv := klisp.getenv
+setenv := klisp.setenv
 makeFn := klisp.makeFn
 makeMacro := klisp.makeMacro
 
@@ -39,7 +40,7 @@ safeEval := (L, env, dec) => dec() :: {
 			Def -> (
 				name := L.'1'.0
 				val := safeEval(L.'1'.'1'.0, env, dec)
-				env.(name) := val
+				setenv(env, name, val)
 				val
 			)
 			Do -> (sub := form => form.1 :: {
@@ -66,12 +67,12 @@ safeEval := (L, env, dec) => dec() :: {
 					(sub := (envc, params, args) => params = () | args = () :: {
 						true -> envc
 						_ -> (
-							envc.(params.0) := args.0
+							setenv(envc, params.0, args.0)
 							sub(envc, params.1, args.1)
 						)
 					})({'-env': env}, params, args)
 					dec
-				))
+				), L)
 			)
 			Macro -> (
 				params := L.'1'.0
@@ -81,13 +82,13 @@ safeEval := (L, env, dec) => dec() :: {
 					(sub := (envc, params, args) => params = () | args = () :: {
 						true -> envc
 						_ -> (
-							envc.(params.0) := args.0
+							setenv(envc, params.0, args.0)
 							sub(envc, params.1, args.1)
 						)
 						` NOTE: all arguments to a macro are passed as the first parameter `
 					})({'-env': env}, params, [args, ()])
 					dec
-				))
+				), L)
 			)
 			_ -> (
 				argcs := L.1
