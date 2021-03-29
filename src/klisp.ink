@@ -60,20 +60,18 @@ reader := s => (
 		})('')
 	)
 	ff := () => (
-		(sub := () => (
-			peek() :: {
-				' ' -> (next(), sub())
-				Newline -> (next(), sub())
-				Tab -> (next(), sub())
-				` ignore / ff through comments `
-				';' -> (sub := () => next() :: {
-					() -> ()
-					Newline -> ff()
-					_ -> sub()
-				})()
-				_ -> ()
-			}
-		))()
+		(sub := () => peek() :: {
+			' ' -> (next(), sub())
+			Newline -> (next(), sub())
+			Tab -> (next(), sub())
+			` ignore / ff through comments `
+			';' -> (sub := () => next() :: {
+				() -> ()
+				Newline -> ff()
+				_ -> sub()
+			})()
+			_ -> ()
+		})()
 	)
 
 	data.peek := peek
@@ -163,29 +161,25 @@ read := s => (
 	})(term)
 )
 
+` Sentinel value to be used in environments to denote a null () value `
+KlispNull := rand()
+
 ` helper to query an environment (scope) for a name.
 	getenv traverses the environment hierarchy `
 getenv := (env, name) => v := env.(name) :: {
-	() -> (
-		` first do a more thorough check to see
-			if the value is in scope but null () `
-		boundNames := keys(env)
-		bound? := (sub := i => i :: {
-			len(boundNames) -> false
-			_ -> boundNames.(i) :: {
-				name -> true
-				_ -> sub(i + 1)
-			}
-		})(0)
-		bound? :: {
-			true -> ()
-			_ -> e := env.('-env') :: {
-				() -> ()
-				_ -> getenv(e, name)
-			}
-		}
-	)
+	() -> e := env.'-env' :: {
+		() -> ()
+		_ -> getenv(e, name)
+	}
+	KlispNull -> ()
 	_ -> v
+}
+
+` helper to set a name to a variable in an environment.
+	pairs with getenv and abstracts over the KlispNull impl detail `
+setenv := (env, name, v) => v :: {
+	() -> env.(name) := KlispNull
+	_ -> env.(name) := v
 }
 
 ` Klisp has two kinds of values represented as "functions".
@@ -212,7 +206,7 @@ eval := (L, env) => type(L) :: {
 		Def -> (
 			name := L.'1'.0
 			val := eval(L.'1'.'1'.0, env)
-			env.(name) := val
+			setenv(env, name, val)
 			val
 		)
 		Do -> (sub := form => form.1 :: {
@@ -239,7 +233,7 @@ eval := (L, env) => type(L) :: {
 				(sub := (envc, params, args) => params = () | args = () :: {
 					true -> envc
 					_ -> (
-						envc.(params.0) := args.0
+						setenv(envc, params.0, args.0)
 						sub(envc, params.1, args.1)
 					)
 				})({'-env': env}, params, args)
@@ -253,7 +247,7 @@ eval := (L, env) => type(L) :: {
 				(sub := (envc, params, args) => params = () | args = () :: {
 					true -> envc
 					_ -> (
-						envc.(params.0) := args.0
+						setenv(envc, params.0, args.0)
 						sub(envc, params.1, args.1)
 					)
 					` NOTE: all arguments to a macro are passed as the first parameter `
