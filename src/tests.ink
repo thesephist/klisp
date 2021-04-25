@@ -246,7 +246,7 @@ withCore(env => (
 				'string' -> t(msg, eval(read(prog), env), val)
 				'composite' -> reduce(prog, (env, term, i) => (
 					i :: {
-						(len(prog) - 1) -> t(msg, eval(read(term), env), val)
+						len(prog) - 1 -> t(msg, eval(read(term), env), val)
 						_ -> eval(read(term), env)
 					}
 					env
