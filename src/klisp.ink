@@ -37,6 +37,7 @@ Def := symbol('def')
 If := symbol('if')
 Fn := symbol('fn')
 Macro := symbol('macro')
+Expand := symbol('expand')
 
 ` reader object constructor,
 	state containing a cursor through a string `
@@ -254,6 +255,16 @@ eval := (L, env) => type(L) :: {
 				})({'-env': env}, params, [args, ()])
 			), L)
 		)
+		Expand -> expr := eval(L.'1'.0, env) :: {
+			() -> expr
+			_ -> funcStub := eval(expr.0, env) :: {
+				[_, _, _] -> funcStub.0 :: {
+					true -> eval(funcStub.1, env)(expr.1)
+					_ -> expr
+				}
+				_ -> expr
+			}
+		}
 		_ -> (
 			argcs := L.1
 			funcStub := eval(L.0, env)
