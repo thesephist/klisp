@@ -74,8 +74,10 @@
 (def gensym
      (fn ()
          (-> (rand)
-             (* 1000000)
+             (* 100000000)
+             floor
              number->string
+             ((fn (s) (+ 'sym' s)))
              string->symbol)))
 
 ; basic math
