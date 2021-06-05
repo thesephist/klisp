@@ -192,20 +192,22 @@
                    (fn (unquote (cadr terms))
                        (unquote (car (cddr terms))))))))
 
-; (cond (pred body) (pred body))
+; (cond (pred body) (pred body) (default-body))
 (def cond
      (macro (terms)
             ((def -cond
                   (fn (terms)
                       (if (nil? terms)
                         ()
-                        (quasiquote
-                          (if (unquote (car (car terms)))
-                            (unquote (cadr (car terms)))
-                            (unquote (-cond (cdr terms))))))))
+                        (if (nil? (cdar terms))
+                          (caar terms)
+                          (quasiquote
+                            (if (unquote (car (car terms)))
+                              (unquote (cadr (car terms)))
+                              (unquote (-cond (cdr terms)))))))))
              terms)))
 
-; (match val (tag body) (tag body))
+; (match val (tag body) (tag body) (default-body))
 (def match
      (macro (terms)
             (do
@@ -214,10 +216,12 @@
                    (fn (terms)
                        (if (nil? terms)
                          ()
-                         (quasiquote
-                           (if (= (unquote -match-val) (unquote (car (car terms))))
-                             (unquote (cadr (car terms)))
-                             (unquote (-match (cdr terms))))))))
+                         (if (nil? (cdar terms))
+                           (caar terms)
+                           (quasiquote
+                             (if (= (unquote -match-val) (unquote (car (car terms))))
+                               (unquote (cadr (car terms)))
+                               (unquote (-match (cdr terms)))))))))
               (quasiquote
                 (let ((unquote -match-val) (unquote (car terms)))
                   (unquote (-match (cdr terms))))))))
