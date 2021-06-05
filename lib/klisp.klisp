@@ -269,6 +269,24 @@
                          (fn (x)
                              (if (= x ,_) -partial-arg x)))))))
 
+; macro expansion functions and macros
+(def macroexpand
+     (macro (terms)
+            (quasiquote (expand (quote (unquote (car terms)))))))
+
+(def expand-all
+     (fn (expr)
+         (if (list? expr)
+           (let (expanded (expand expr))
+             (if (list? expanded)
+               (map expanded expand-all)
+               expanded))
+           expr)))
+
+(def macroexpand-all
+     (macro (terms)
+            (quasiquote (expand-all (quote (unquote (car terms)))))))
+
 ; list methods
 (def nth
      (fn (xs i)
