@@ -313,9 +313,11 @@
          (do
            (def index-from
                 (fn (xs x rest)
-                    (if (= (car xs) x)
-                      rest
-                      (index-from (cdr xs) x (inc rest)))))
+                    (if (nil? xs)
+                      (neg 1)
+                      (if (= (car xs) x)
+                        rest
+                        (index-from (cdr xs) x (inc rest))))))
            (index-from xs x 0))))
 
 (def find
@@ -362,7 +364,7 @@
 
 (def contains?
      (fn (xs x)
-         (< 0 (index xs x))))
+         (<= 0 (index xs x))))
 
 ; O(n^2) behavior with linked lists
 (def append
@@ -479,6 +481,23 @@
            ()
            (cons (take xs n)
                  (partition (drop xs n) n)))))
+
+; string functions
+(def cat
+     (fn (xs joiner)
+         (if (nil? xs)
+           ''
+           (do
+             (def cat-onto
+                  (fn (xs prefix)
+                      (if (nil? xs)
+                        prefix
+                        (cat-onto (cdr xs)
+                                  (+ prefix joiner (car xs))))))
+             (cat-onto (cdr xs) (car xs))))))
+
+(defn char-at (s i)
+      (gets s i (inc i)))
 
 ; composites: persistent immutable associative array
 ;
