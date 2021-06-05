@@ -122,8 +122,9 @@ EvalTests := [
 			(string->number \'\'))', 0]
 	['number->string'
 		'(+ (number->string 1.23)
+			(number->string 0.333333333)
 			(number->string 40)
-			(number->string (- 100 90)))', '1.230000004010']
+			(number->string (- 100 90)))', '1.230.3333333334010']
 	['string->symbol'
 		'(cons (string->symbol \'quote\') (string->symbol (+ \'hel\' \'lo\'))', [symbol('quote'), symbol('hello')]]
 	['symbol->string'
